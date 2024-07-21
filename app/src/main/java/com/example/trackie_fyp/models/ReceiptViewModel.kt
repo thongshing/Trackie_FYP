@@ -26,7 +26,7 @@ class ReceiptViewModel(application: Application) : AndroidViewModel(application)
     val error: LiveData<String?> get() = _error
     private val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
-    fun processImage(bitmap: Bitmap) {
+    fun processImage(bitmap: Bitmap, userId: Int) {
         Log.d("ReceiptViewModel", "Processing image for OCR")
         val image = InputImage.fromBitmap(bitmap, 0)
         recognizer.process(image)

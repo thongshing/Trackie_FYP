@@ -6,10 +6,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.LocalContentAlpha
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +36,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AddExpenseScreen(
     navController: NavHostController,
+    userId: Int, // Add this parameter
     expenseId: Int? = null,
     expenseViewModel: ExpenseViewModel = viewModel(),
     categoryViewModel: CategoryViewModel = viewModel()
@@ -41,7 +47,7 @@ fun AddExpenseScreen(
     // Load categories when the composable is first launched
     LaunchedEffect(Unit) {
         Log.d("AddExpenseScreen", "Calling loadCategories()")
-        categoryViewModel.loadCategories()
+        categoryViewModel.loadCategories(userId)
     }
 
     val expense by expenseViewModel.getExpenseById(expenseId ?: -1).observeAsState()
@@ -59,7 +65,7 @@ fun AddExpenseScreen(
             description.value = it.description
             selectedCategory = it.category
             textState.value = it.date
-            dateState.selectedDateMillis = it.date.toDate().time
+            dateState.selectedDateMillis = it.date.toDate()?.time
         }
     }
 
@@ -112,7 +118,7 @@ fun AddExpenseScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        TextField(
+        OutlinedTextField(
             value = amount.value,
             onValueChange = { amount.value = it },
             label = { Text("Amount") },
@@ -122,7 +128,7 @@ fun AddExpenseScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        TextField(
+        OutlinedTextField(
             value = description.value,
             onValueChange = { description.value = it },
             label = { Text("Description") },
@@ -149,12 +155,12 @@ fun AddExpenseScreen(
                     amount = amount.value.toDouble(),
                     category = selectedCategory,
                     description = description.value,
-                    receiptImage = null // Handle receipt image logic if needed
+                    userId = userId // Ensure userId is passed when saving the expense
                 )
                 if (expense != null) {
-                    expenseViewModel.updateExpense(newExpense)
+                    expenseViewModel.updateExpense(newExpense, userId)
                 } else {
-                    expenseViewModel.saveExpense(newExpense)
+                    expenseViewModel.saveExpense(newExpense, userId)
                 }
                 Toast.makeText(context, "Expense saved", Toast.LENGTH_SHORT).show()
                 navController.popBackStack() // Navigate back after saving
@@ -166,6 +172,7 @@ fun AddExpenseScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryDropdownMenu(
     selectedCategory: Category?,
@@ -182,27 +189,39 @@ fun CategoryDropdownMenu(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
-            .clickable {
-                expanded = true
-                Log.d("CategoryDropdownMenu", "Box clicked, expanded = $expanded")
-            }
-            .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.medium)
-            .padding(16.dp)
+            .padding(vertical = 8.dp)
     ) {
-        Text(
-            text = selectedText,
-            style = MaterialTheme.typography.bodyLarge,
-            color = if (selectedText == "Select Category") MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface
+        OutlinedTextField(
+            value = selectedText,
+            onValueChange = { },
+            readOnly = true,
+            label = { },
+            trailingIcon = {
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                    contentDescription = "Dropdown icon",
+                    modifier = Modifier.clickable { expanded = !expanded }
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                focusedBorderColor = Color.Black,
+                unfocusedBorderColor = Color.Black,
+                focusedLabelColor = Color.Black,
+                unfocusedLabelColor = Color.Black,
+                disabledTextColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                disabledLabelColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                disabledLeadingIconColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                disabledTrailingIconColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                disabledPlaceholderColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+                disabledSupportingTextColor = LocalContentColor.current.copy(LocalContentAlpha.current),
+            )
         )
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-                Log.d("CategoryDropdownMenu", "Dropdown dismissed, expanded = $expanded")
-            }
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Log.d("CategoryDropdownMenu", "Rendering categories: ${categories.size}")
             categories.forEach { category ->
                 DropdownMenuItem(
                     text = { Text(category.name) },
@@ -210,7 +229,6 @@ fun CategoryDropdownMenu(
                         onCategorySelected(category)
                         selectedText = category.name
                         expanded = false
-                        Log.d("CategoryDropdownMenu", "Category selected: ${category.name}, expanded = $expanded")
                     }
                 )
             }
@@ -218,11 +236,10 @@ fun CategoryDropdownMenu(
     }
 }
 
-
 @Composable
 @Preview(showBackground = true)
 fun AddExpenseScreenPreview() {
     Trackie_FYPTheme {
-        AddExpenseScreen(navController = rememberNavController())
+        AddExpenseScreen(navController = rememberNavController(), userId = 1)
     }
 }

@@ -19,6 +19,7 @@ MERGED from [androidx.compose.material3:material3-android:1.2.1] C:\Users\A512FL
 MERGED from [androidx.compose.material:material-ripple-android:1.6.8] C:\Users\A512FL\.gradle\caches\transforms-4\6ab95161361a3a2b38a621adfc412a6d\transformed\material-ripple-release\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.material:material-icons-core-android:1.6.8] C:\Users\A512FL\.gradle\caches\transforms-4\8a76407c5d969ce00afce340add83bab\transformed\material-icons-core-release\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.compose.material:material-icons-extended-android:1.6.8] C:\Users\A512FL\.gradle\caches\transforms-4\aa4d62a1814ebbbd6fa9ab3971972c4d\transformed\material-icons-extended-release\AndroidManifest.xml:2:1-7:12
+MERGED from [com.github.tehras.charts:bar:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\55cbcdd5261d5aad724c4c9f3ca9f54f\transformed\bar-0.2.4-alpha\AndroidManifest.xml:2:1-9:12
 MERGED from [androidx.hilt:hilt-navigation-compose:1.2.0] C:\Users\A512FL\.gradle\caches\transforms-4\d4fd4414f25f3adad467e81b31410c35\transformed\hilt-navigation-compose-1.2.0\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.hilt:hilt-navigation:1.2.0] C:\Users\A512FL\.gradle\caches\transforms-4\73fbcaf8fe0a9ea6b9153c045d1100b7\transformed\hilt-navigation-1.2.0\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.navigation:navigation-common:2.7.7] C:\Users\A512FL\.gradle\caches\transforms-4\5a28ea97fbd7b7e490476d84a3ddeda4\transformed\navigation-common-2.7.7\AndroidManifest.xml:17:1-22:12
@@ -42,6 +43,9 @@ MERGED from [androidx.fragment:fragment:1.5.4] C:\Users\A512FL\.gradle\caches\tr
 MERGED from [androidx.activity:activity:1.9.0] C:\Users\A512FL\.gradle\caches\transforms-4\3c9457644c15f3bb5f921978e6281f84\transformed\activity-1.9.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.activity:activity-ktx:1.9.0] C:\Users\A512FL\.gradle\caches\transforms-4\7b5ca49edb8d7f96182447c12820a35b\transformed\activity-ktx-1.9.0\AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.activity:activity-compose:1.9.0] C:\Users\A512FL\.gradle\caches\transforms-4\daeda323d52d3761d93b4c22460464fe\transformed\activity-compose-1.9.0\AndroidManifest.xml:2:1-7:12
+MERGED from [com.github.tehras.charts:line:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\131e0a21d6b42384c8a2e68cc136aa11\transformed\line-0.2.4-alpha\AndroidManifest.xml:2:1-9:12
+MERGED from [com.github.tehras.charts:pie:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\c65dfe5f203b79f220cf6894d6430a0f\transformed\pie-0.2.4-alpha\AndroidManifest.xml:2:1-9:12
+MERGED from [com.github.tehras.charts:common:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\781e7e0c7f0d439ab0b5abf66b935816\transformed\common-0.2.4-alpha\AndroidManifest.xml:2:1-9:12
 MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\A512FL\.gradle\caches\transforms-4\7af01d2ab2ce0be8238976d4dd629590\transformed\savedstate-ktx-1.2.1\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\A512FL\.gradle\caches\transforms-4\f64f6a78bdcdaef6eee07475f59f6020\transformed\savedstate-1.2.1\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.loader:loader:1.0.0] C:\Users\A512FL\.gradle\caches\transforms-4\0ec8044d6e1c5034a1fe4b5c1dc8b931\transformed\loader-1.0.0\AndroidManifest.xml:17:1-22:12
@@ -91,6 +95,7 @@ MERGED from [androidx.core:core-ktx:1.13.1] C:\Users\A512FL\.gradle\caches\trans
 MERGED from [androidx.sqlite:sqlite:2.4.0] C:\Users\A512FL\.gradle\caches\transforms-4\b51272ea263c5f8f20c428c1099c0ed7\transformed\sqlite-2.4.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\A512FL\.gradle\caches\transforms-4\f34f0aceb763154dcb890f0ed6fa32c8\transformed\annotation-experimental-1.4.0\AndroidManifest.xml:2:1-7:12
 MERGED from [io.github.aakira:napier-android-debug:1.4.1] C:\Users\A512FL\.gradle\caches\transforms-4\a8564bb31cead9874f6d03760ebdb2e4\transformed\napier-debug\AndroidManifest.xml:2:1-11:12
+MERGED from [com.github.PhilJay:MPAndroidChart:v3.1.0] C:\Users\A512FL\.gradle\caches\transforms-4\c13b503088f0f79bfdaa74abaa2c04a4\transformed\MPAndroidChart-v3.1.0\AndroidManifest.xml:2:1-20:12
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\A512FL\.gradle\caches\transforms-4\04cb21bddecb40bea89080484db8c871\transformed\cursoradapter-1.0.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\A512FL\.gradle\caches\transforms-4\deb0e116c1a33767d24f6bf85a6939d8\transformed\profileinstaller-1.3.1\AndroidManifest.xml:17:1-55:12
 MERGED from [androidx.exifinterface:exifinterface:1.3.2] C:\Users\A512FL\.gradle\caches\transforms-4\a00ee2486de719711382eb7942ed281e\transformed\exifinterface-1.3.2\AndroidManifest.xml:17:1-24:12
@@ -102,6 +107,7 @@ MERGED from [com.google.android.datatransport:transport-runtime:2.2.6] C:\Users\
 MERGED from [com.google.android.datatransport:transport-api:2.2.1] C:\Users\A512FL\.gradle\caches\transforms-4\5b4f5ad3425a50d1e05bcb85c63bf861\transformed\transport-api-2.2.1\AndroidManifest.xml:15:1-22:12
 MERGED from [com.google.firebase:firebase-components:16.1.0] C:\Users\A512FL\.gradle\caches\transforms-4\8ded7fcad4732b28358a6996a68a02dc\transformed\firebase-components-16.1.0\AndroidManifest.xml:15:1-23:12
 MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] C:\Users\A512FL\.gradle\caches\transforms-4\accafeb8d5a1f42f9be77664db0c982f\transformed\firebase-encoders-json-17.1.0\AndroidManifest.xml:15:1-23:12
+MERGED from [androidx.databinding:viewbinding:7.3.1] C:\Users\A512FL\.gradle\caches\transforms-4\86432c5838bb41f835aafaa4125c31e6\transformed\viewbinding-7.3.1\AndroidManifest.xml:2:1-9:12
 MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\A512FL\.gradle\caches\transforms-4\12c77fb4729aaf0665b89a6d2326ea90\transformed\core-runtime-2.2.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.tracing:tracing:1.0.0] C:\Users\A512FL\.gradle\caches\transforms-4\ad413db167d2c5a8576872e9b2f422c6\transformed\tracing-1.0.0\AndroidManifest.xml:17:1-24:12
 MERGED from [com.android.billingclient:billing:4.0.0] C:\Users\A512FL\.gradle\caches\transforms-4\b6588f35dd5325216f7c3e967c4a741f\transformed\billing-4.0.0\AndroidManifest.xml:2:1-24:12
@@ -282,6 +288,8 @@ MERGED from [androidx.compose.material:material-icons-core-android:1.6.8] C:\Use
 MERGED from [androidx.compose.material:material-icons-core-android:1.6.8] C:\Users\A512FL\.gradle\caches\transforms-4\8a76407c5d969ce00afce340add83bab\transformed\material-icons-core-release\AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.material:material-icons-extended-android:1.6.8] C:\Users\A512FL\.gradle\caches\transforms-4\aa4d62a1814ebbbd6fa9ab3971972c4d\transformed\material-icons-extended-release\AndroidManifest.xml:5:5-44
 MERGED from [androidx.compose.material:material-icons-extended-android:1.6.8] C:\Users\A512FL\.gradle\caches\transforms-4\aa4d62a1814ebbbd6fa9ab3971972c4d\transformed\material-icons-extended-release\AndroidManifest.xml:5:5-44
+MERGED from [com.github.tehras.charts:bar:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\55cbcdd5261d5aad724c4c9f3ca9f54f\transformed\bar-0.2.4-alpha\AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.tehras.charts:bar:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\55cbcdd5261d5aad724c4c9f3ca9f54f\transformed\bar-0.2.4-alpha\AndroidManifest.xml:5:5-7:41
 MERGED from [androidx.hilt:hilt-navigation-compose:1.2.0] C:\Users\A512FL\.gradle\caches\transforms-4\d4fd4414f25f3adad467e81b31410c35\transformed\hilt-navigation-compose-1.2.0\AndroidManifest.xml:5:5-44
 MERGED from [androidx.hilt:hilt-navigation-compose:1.2.0] C:\Users\A512FL\.gradle\caches\transforms-4\d4fd4414f25f3adad467e81b31410c35\transformed\hilt-navigation-compose-1.2.0\AndroidManifest.xml:5:5-44
 MERGED from [androidx.hilt:hilt-navigation:1.2.0] C:\Users\A512FL\.gradle\caches\transforms-4\73fbcaf8fe0a9ea6b9153c045d1100b7\transformed\hilt-navigation-1.2.0\AndroidManifest.xml:5:5-44
@@ -328,6 +336,12 @@ MERGED from [androidx.activity:activity-ktx:1.9.0] C:\Users\A512FL\.gradle\cache
 MERGED from [androidx.activity:activity-ktx:1.9.0] C:\Users\A512FL\.gradle\caches\transforms-4\7b5ca49edb8d7f96182447c12820a35b\transformed\activity-ktx-1.9.0\AndroidManifest.xml:5:5-44
 MERGED from [androidx.activity:activity-compose:1.9.0] C:\Users\A512FL\.gradle\caches\transforms-4\daeda323d52d3761d93b4c22460464fe\transformed\activity-compose-1.9.0\AndroidManifest.xml:5:5-44
 MERGED from [androidx.activity:activity-compose:1.9.0] C:\Users\A512FL\.gradle\caches\transforms-4\daeda323d52d3761d93b4c22460464fe\transformed\activity-compose-1.9.0\AndroidManifest.xml:5:5-44
+MERGED from [com.github.tehras.charts:line:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\131e0a21d6b42384c8a2e68cc136aa11\transformed\line-0.2.4-alpha\AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.tehras.charts:line:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\131e0a21d6b42384c8a2e68cc136aa11\transformed\line-0.2.4-alpha\AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.tehras.charts:pie:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\c65dfe5f203b79f220cf6894d6430a0f\transformed\pie-0.2.4-alpha\AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.tehras.charts:pie:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\c65dfe5f203b79f220cf6894d6430a0f\transformed\pie-0.2.4-alpha\AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.tehras.charts:common:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\781e7e0c7f0d439ab0b5abf66b935816\transformed\common-0.2.4-alpha\AndroidManifest.xml:5:5-7:41
+MERGED from [com.github.tehras.charts:common:0.2.4-alpha] C:\Users\A512FL\.gradle\caches\transforms-4\781e7e0c7f0d439ab0b5abf66b935816\transformed\common-0.2.4-alpha\AndroidManifest.xml:5:5-7:41
 MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\A512FL\.gradle\caches\transforms-4\7af01d2ab2ce0be8238976d4dd629590\transformed\savedstate-ktx-1.2.1\AndroidManifest.xml:20:5-44
 MERGED from [androidx.savedstate:savedstate-ktx:1.2.1] C:\Users\A512FL\.gradle\caches\transforms-4\7af01d2ab2ce0be8238976d4dd629590\transformed\savedstate-ktx-1.2.1\AndroidManifest.xml:20:5-44
 MERGED from [androidx.savedstate:savedstate:1.2.1] C:\Users\A512FL\.gradle\caches\transforms-4\f64f6a78bdcdaef6eee07475f59f6020\transformed\savedstate-1.2.1\AndroidManifest.xml:20:5-44
@@ -426,6 +440,8 @@ MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\A512FL\
 MERGED from [androidx.annotation:annotation-experimental:1.4.0] C:\Users\A512FL\.gradle\caches\transforms-4\f34f0aceb763154dcb890f0ed6fa32c8\transformed\annotation-experimental-1.4.0\AndroidManifest.xml:5:5-44
 MERGED from [io.github.aakira:napier-android-debug:1.4.1] C:\Users\A512FL\.gradle\caches\transforms-4\a8564bb31cead9874f6d03760ebdb2e4\transformed\napier-debug\AndroidManifest.xml:7:5-9:41
 MERGED from [io.github.aakira:napier-android-debug:1.4.1] C:\Users\A512FL\.gradle\caches\transforms-4\a8564bb31cead9874f6d03760ebdb2e4\transformed\napier-debug\AndroidManifest.xml:7:5-9:41
+MERGED from [com.github.PhilJay:MPAndroidChart:v3.1.0] C:\Users\A512FL\.gradle\caches\transforms-4\c13b503088f0f79bfdaa74abaa2c04a4\transformed\MPAndroidChart-v3.1.0\AndroidManifest.xml:16:5-18:41
+MERGED from [com.github.PhilJay:MPAndroidChart:v3.1.0] C:\Users\A512FL\.gradle\caches\transforms-4\c13b503088f0f79bfdaa74abaa2c04a4\transformed\MPAndroidChart-v3.1.0\AndroidManifest.xml:16:5-18:41
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\A512FL\.gradle\caches\transforms-4\04cb21bddecb40bea89080484db8c871\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] C:\Users\A512FL\.gradle\caches\transforms-4\04cb21bddecb40bea89080484db8c871\transformed\cursoradapter-1.0.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\A512FL\.gradle\caches\transforms-4\deb0e116c1a33767d24f6bf85a6939d8\transformed\profileinstaller-1.3.1\AndroidManifest.xml:21:5-44
@@ -448,6 +464,8 @@ MERGED from [com.google.firebase:firebase-components:16.1.0] C:\Users\A512FL\.gr
 MERGED from [com.google.firebase:firebase-components:16.1.0] C:\Users\A512FL\.gradle\caches\transforms-4\8ded7fcad4732b28358a6996a68a02dc\transformed\firebase-components-16.1.0\AndroidManifest.xml:19:5-21:41
 MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] C:\Users\A512FL\.gradle\caches\transforms-4\accafeb8d5a1f42f9be77664db0c982f\transformed\firebase-encoders-json-17.1.0\AndroidManifest.xml:19:5-21:41
 MERGED from [com.google.firebase:firebase-encoders-json:17.1.0] C:\Users\A512FL\.gradle\caches\transforms-4\accafeb8d5a1f42f9be77664db0c982f\transformed\firebase-encoders-json-17.1.0\AndroidManifest.xml:19:5-21:41
+MERGED from [androidx.databinding:viewbinding:7.3.1] C:\Users\A512FL\.gradle\caches\transforms-4\86432c5838bb41f835aafaa4125c31e6\transformed\viewbinding-7.3.1\AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.databinding:viewbinding:7.3.1] C:\Users\A512FL\.gradle\caches\transforms-4\86432c5838bb41f835aafaa4125c31e6\transformed\viewbinding-7.3.1\AndroidManifest.xml:5:5-7:41
 MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\A512FL\.gradle\caches\transforms-4\12c77fb4729aaf0665b89a6d2326ea90\transformed\core-runtime-2.2.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.arch.core:core-runtime:2.2.0] C:\Users\A512FL\.gradle\caches\transforms-4\12c77fb4729aaf0665b89a6d2326ea90\transformed\core-runtime-2.2.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.tracing:tracing:1.0.0] C:\Users\A512FL\.gradle\caches\transforms-4\ad413db167d2c5a8576872e9b2f422c6\transformed\tracing-1.0.0\AndroidManifest.xml:20:5-22:41

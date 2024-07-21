@@ -15,7 +15,7 @@ import androidx.navigation.NavHostController
 
 
 @Composable
-fun AddScreen(navController: NavHostController) {
+fun AddScreen(navController: NavHostController, userId: Int) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -25,7 +25,7 @@ fun AddScreen(navController: NavHostController) {
     ) {
         Button(
             onClick = {
-                navController.navigate("addIncome") {
+                navController.navigate("addIncome/$userId") {
                     popUpTo("add") { inclusive = true }
                 }
             },
@@ -38,7 +38,7 @@ fun AddScreen(navController: NavHostController) {
 
         Button(
             onClick = {
-                navController.navigate("addExpense") {
+                navController.navigate("addExpense/$userId") {
                     popUpTo("add") { inclusive = true }
                 }
             },

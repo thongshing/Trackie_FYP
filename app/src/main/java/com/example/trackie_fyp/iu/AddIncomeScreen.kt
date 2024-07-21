@@ -2,6 +2,7 @@ package com.example.trackie_fyp.iu
 
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
@@ -21,15 +22,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trackie_fyp.DataClass.Category
 import com.example.trackie_fyp.DataClass.Income
@@ -44,22 +44,21 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AddIncomeScreen(
     navController: NavHostController,
+    userId: Int, // Add this parameter
     incomeId: Int? = null, // Add this parameter
     expenseViewModel: ExpenseViewModel = viewModel(),
     categoryViewModel: CategoryViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    var extractedText by remember { mutableStateOf("") }
 
     // Load categories when the composable is first launched
     LaunchedEffect(Unit) {
         Log.d("AddIncomeScreen", "Calling loadCategories()")
-        categoryViewModel.loadCategories()
+        categoryViewModel.loadCategories(userId)
     }
 
     val income by expenseViewModel.getIncomeById(incomeId ?: -1).observeAsState()
     val amount = remember { mutableStateOf("") }
-    val source = remember { mutableStateOf("") }
     val description = remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
     val categories by categoryViewModel.categories.observeAsState(emptyList())
@@ -70,11 +69,10 @@ fun AddIncomeScreen(
     LaunchedEffect(income) {
         income?.let {
             amount.value = it.amount.toString()
-            source.value = it.source
             description.value = it.description
             selectedCategory = it.category
             textState.value = it.date
-            dateState.selectedDateMillis = it.date.toDate().time
+            dateState.selectedDateMillis = it.date.toDate()?.time
         }
     }
 
@@ -96,8 +94,8 @@ fun AddIncomeScreen(
         ReadonlyTextField(
             value = textState.value,
             onValueChange = {},
-            onClick = { dialogState.value = true },
             label = { Text("Date") },
+            onClick = { dialogState.value = true },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -127,7 +125,7 @@ fun AddIncomeScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        TextField(
+        OutlinedTextField(
             value = amount.value,
             onValueChange = { amount.value = it },
             label = { Text("Amount") },
@@ -137,16 +135,7 @@ fun AddIncomeScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        TextField(
-            value = source.value,
-            onValueChange = { source.value = it },
-            label = { Text("Source") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextField(
+        OutlinedTextField(
             value = description.value,
             onValueChange = { description.value = it },
             label = { Text("Description") },
@@ -158,7 +147,7 @@ fun AddIncomeScreen(
         CategoryDropdownMenu(
             selectedCategory = selectedCategory,
             onCategorySelected = { selectedCategory = it },
-            categories = incomeCategories
+            categories = incomeCategories,
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -173,12 +162,12 @@ fun AddIncomeScreen(
                     amount = amount.value.toDouble(),
                     category = selectedCategory,
                     description = description.value,
-                    source = source.value
+                    userId = userId // Ensure userId is passed when saving the income
                 )
                 if (income != null) {
-                    expenseViewModel.updateIncome(newIncome)
+                    expenseViewModel.updateIncome(newIncome, userId)
                 } else {
-                    expenseViewModel.saveIncome(newIncome)
+                    expenseViewModel.saveIncome(newIncome, userId)
                 }
                 Toast.makeText(context, "Income saved", Toast.LENGTH_SHORT).show()
                 navController.popBackStack() // Navigate back after saving

@@ -11,38 +11,34 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class CategoryViewModel(application: Application) : AndroidViewModel(application) {
-    private val dbHelper = DatabaseHelper(application)
+    private val dbHelper = DatabaseHelper.getInstance(application)
     private val _categories = MutableLiveData<List<Category>>()
     val categories: LiveData<List<Category>> get() = _categories
 
-    init {
-        loadCategories()
-    }
-
-    fun loadCategories() {
+    fun loadCategories(userId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            _categories.postValue(dbHelper.getAllCategories())
+            _categories.postValue(dbHelper.getAllCategories(userId))
         }
     }
 
-    fun addCategory(name: String, type: String = "") {
+    fun addCategory(name: String, type: String, userId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            dbHelper.addCategory(Category(name = name, type = type))
-            loadCategories()
+            dbHelper.addCategory(Category(name = name, type = type, userId = userId))
+            loadCategories(userId)
         }
     }
 
     fun editCategory(category: Category) {
         viewModelScope.launch(Dispatchers.IO) {
             dbHelper.updateCategory(category)
-            loadCategories()
+            loadCategories(category.userId)
         }
     }
 
-    fun deleteCategory(categoryId: Int) {
+    fun deleteCategory(categoryId: Int, userId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             dbHelper.deleteCategory(categoryId)
-            loadCategories()
+            loadCategories(userId)
         }
     }
 }

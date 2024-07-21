@@ -24,7 +24,7 @@ import com.example.trackie_fyp.models.ReceiptViewModel
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReceiptScanningScreen(navController: NavHostController, viewModel: ReceiptViewModel = viewModel()) {
+fun ReceiptScanningScreen(navController: NavHostController, userId: Int, viewModel: ReceiptViewModel = viewModel()) {
     DisposableEffect(Unit) {
         onDispose {
             viewModel.resetTotalAmount() // Reset total amount and error when leaving the screen
@@ -34,7 +34,7 @@ fun ReceiptScanningScreen(navController: NavHostController, viewModel: ReceiptVi
     Scaffold(
         content = {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -47,8 +47,9 @@ fun ReceiptScanningScreen(navController: NavHostController, viewModel: ReceiptVi
 
                 CameraCapture(
                     key = cameraKey.value,
+                    userId = userId, // Pass userId here
                     onImageCaptured = { bitmap ->
-                        viewModel.processImage(bitmap)
+                        viewModel.processImage(bitmap, userId) // Pass userId to processImage
                     },
                     onError = { exception ->
                         // Handle error
@@ -64,21 +65,27 @@ fun ReceiptScanningScreen(navController: NavHostController, viewModel: ReceiptVi
                 if (error != null) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(text = error!!)
+                        Text(text = error!!, modifier = Modifier.fillMaxWidth())
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = {
-                            cameraKey.value++
-                            viewModel.resetTotalAmount()
-                        }) {
+                        Button(
+                            onClick = {
+                                cameraKey.value++
+                                viewModel.resetTotalAmount()
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Text("Retry")
                         }
                     }
                 } else {
-                    LazyColumn {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         items(ocrResult) { item ->
-                            Text(text = item)
+                            Text(text = item, modifier = Modifier.fillMaxWidth())
                         }
                     }
 
@@ -87,10 +94,10 @@ fun ReceiptScanningScreen(navController: NavHostController, viewModel: ReceiptVi
                     val totalAmount by viewModel.totalAmount.observeAsState()
                     val receiptDate by viewModel.receiptDate.observeAsState()
                     totalAmount?.let {
-                        Text("Total Amount: $$it", modifier = Modifier.padding(8.dp))
+                        Text("Total Amount: $$it", modifier = Modifier.fillMaxWidth().padding(8.dp))
                         LaunchedEffect(it) {
                             val date = receiptDate ?: "unknown" // Provide a default value for the date
-                            navController.navigate("totalAmount/$it/$date")
+                            navController.navigate("totalAmount/$it/$date/$userId") // Pass userId in navigation
                         }
                     }
                 }
@@ -103,6 +110,6 @@ fun ReceiptScanningScreen(navController: NavHostController, viewModel: ReceiptVi
 @Composable
 fun ReceiptScanningScreenPreview() {
     val navController = rememberNavController()
-    ReceiptScanningScreen(navController = navController)
+    ReceiptScanningScreen(navController = navController, userId = 1) // Provide a sample userId
 }
 

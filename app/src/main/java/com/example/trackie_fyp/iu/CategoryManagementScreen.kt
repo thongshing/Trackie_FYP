@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -26,16 +28,25 @@ import androidx.navigation.NavController
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryManagementScreen(navController: NavController, viewModel: CategoryViewModel = viewModel()) {
+fun CategoryManagementScreen(
+    navController: NavController,
+    userId: Int, // Add userId parameter
+    viewModel: CategoryViewModel = viewModel()
+) {
     var categoryName by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf("Expense") }
     val categories by viewModel.categories.observeAsState(emptyList())
     var expanded by remember { mutableStateOf(false) }
 
+    // Load categories for the user when the composable is first launched
+    LaunchedEffect(Unit) {
+        viewModel.loadCategories(userId)
+    }
+
     Scaffold(
         content = {
             Column(modifier = Modifier.padding(16.dp)) {
-                TextField(
+                OutlinedTextField(
                     value = categoryName,
                     onValueChange = { categoryName = it },
                     label = { Text("Category Name") },
@@ -44,16 +55,19 @@ fun CategoryManagementScreen(navController: NavController, viewModel: CategoryVi
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = selectedType,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) { expanded = true }
-                            .padding(16.dp),
-                        style = MaterialTheme.typography.bodyLarge
+                    OutlinedTextField(
+                        value = selectedType,
+                        onValueChange = { },
+                        readOnly = true,
+                        label = {},
+                        trailingIcon = {
+                            Icon(
+                                imageVector = if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                                contentDescription = "Dropdown icon",
+                                modifier = Modifier.clickable { expanded = !expanded }
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
                     )
                     DropdownMenu(
                         expanded = expanded,
@@ -80,7 +94,7 @@ fun CategoryManagementScreen(navController: NavController, viewModel: CategoryVi
                 Button(
                     onClick = {
                         if (categoryName.isNotBlank()) {
-                            viewModel.addCategory(categoryName, selectedType)
+                            viewModel.addCategory(categoryName, selectedType, userId)
                             categoryName = ""
                             selectedType = "Expense" // Reset type to default
                         }
@@ -95,10 +109,10 @@ fun CategoryManagementScreen(navController: NavController, viewModel: CategoryVi
                         CategoryItem(
                             category = category,
                             onEdit = { newName, newType ->
-                                viewModel.editCategory(category.copy(name = newName, type = newType))
+                                viewModel.editCategory(category.copy(name = newName, type = newType, userId = userId))
                             },
                             onDelete = {
-                                viewModel.deleteCategory(category.id)
+                                viewModel.deleteCategory(category.id, userId)
                             }
                         )
                         Divider()
@@ -125,24 +139,26 @@ fun CategoryItem(category: Category, onEdit: (String, String) -> Unit, onDelete:
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                TextField(
+                OutlinedTextField(
                     value = editedName,
                     onValueChange = { editedName = it },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) { expanded = true }
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = editedType,
-                        style = MaterialTheme.typography.bodyLarge
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = editedType,
+                        onValueChange = { },
+                        readOnly = true,
+                        label = { Text("Type") },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                                contentDescription = "Dropdown icon",
+                                modifier = Modifier.clickable { expanded = !expanded }
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
                     )
                     DropdownMenu(
                         expanded = expanded,
@@ -197,10 +213,4 @@ fun CategoryItem(category: Category, onEdit: (String, String) -> Unit, onDelete:
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun CategoryManagementScreenPreview() {
-    CategoryManagementScreen(navController = rememberNavController())
 }

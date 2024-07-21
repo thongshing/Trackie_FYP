@@ -13,12 +13,21 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
@@ -30,6 +39,7 @@ import java.io.File
 @Composable
 fun CameraCapture(
     key: Int,
+    userId: Int, // Accept userId
     onImageCaptured: (Bitmap) -> Unit,
     onError: (ImageCaptureException) -> Unit
 ) {
@@ -73,48 +83,61 @@ fun CameraCapture(
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        contentAlignment = Alignment.BottomCenter
     ) {
         AndroidView(
             factory = { previewView },
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.fillMaxSize()
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = {
-            Log.d("CameraCapture", "Capture button clicked")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
-                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/CameraX-Images")
-                }
-                val collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-                val outputOptions = ImageCapture.OutputFileOptions.Builder(
-                    context.contentResolver,
-                    collection,
-                    contentValues
-                ).build()
-                takePicture(imageCapture, outputOptions, context, onImageCaptured, onError)
-            } else {
-                val file = createTempFile(context)
-                val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
-                takePicture(imageCapture, outputOptions, context, onImageCaptured, onError)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            IconButton(
+                onClick = {
+                    photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                },
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(Icons.Default.Photo, contentDescription = "Select Image", tint = Color.White)
             }
-        }) {
-            Text("Capture")
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
-        Button(onClick = {
-            photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-        }) {
-            Text("Select Image")
+            IconButton(
+                onClick = {
+                    Log.d("CameraCapture", "Capture icon clicked")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        val contentValues = ContentValues().apply {
+                            put(MediaStore.MediaColumns.DISPLAY_NAME, "IMG_${System.currentTimeMillis()}.jpg")
+                            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                            put(MediaStore.MediaColumns.RELATIVE_PATH, "Pictures/CameraX-Images")
+                        }
+                        val collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                        val outputOptions = ImageCapture.OutputFileOptions.Builder(
+                            context.contentResolver,
+                            collection,
+                            contentValues
+                        ).build()
+                        takePicture(imageCapture, outputOptions, context, onImageCaptured, onError)
+                    } else {
+                        val file = createTempFile(context)
+                        val outputOptions = ImageCapture.OutputFileOptions.Builder(file).build()
+                        takePicture(imageCapture, outputOptions, context, onImageCaptured, onError)
+                    }
+                },
+                modifier = Modifier
+                    .size(72.dp)
+                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+            ) {
+                Icon(Icons.Default.CameraAlt, contentDescription = "Capture", tint = Color.White)
+            }
         }
     }
 }

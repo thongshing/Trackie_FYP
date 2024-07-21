@@ -13,9 +13,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +44,7 @@ import java.time.format.DateTimeFormatter
 fun TotalAmountScreen(
     totalAmount: Float,
     receiptDate: String,
+    userId: Int, // Accept userId as a parameter
     navController: NavHostController,
     expenseViewModel: ExpenseViewModel = viewModel(),
     categoryViewModel: CategoryViewModel = viewModel()
@@ -54,7 +55,7 @@ fun TotalAmountScreen(
     // Load categories when the composable is first launched
     LaunchedEffect(Unit) {
         Log.d("TotalAmountScreen", "Calling loadCategories()")
-        categoryViewModel.loadCategories()
+        categoryViewModel.loadCategories(userId)
     }
 
     val categories by categoryViewModel.categories.observeAsState(emptyList())
@@ -108,7 +109,7 @@ fun TotalAmountScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        TextField(
+        OutlinedTextField(
             value = amount.value,
             onValueChange = { amount.value = it },
             label = { Text("Amount") },
@@ -118,7 +119,7 @@ fun TotalAmountScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        TextField(
+        OutlinedTextField(
             value = description.value,
             onValueChange = { description.value = it },
             label = { Text("Description") },
@@ -145,9 +146,9 @@ fun TotalAmountScreen(
                     amount = amount.value.toDouble(),
                     category = selectedCategory,
                     description = description.value,
-                    receiptImage = null // Handle receipt image logic if needed
+                    userId = userId // Pass userId to the Expense object
                 )
-                expenseViewModel.saveExpense(expense)
+                expenseViewModel.saveExpense(expense, userId) // Pass userId to the ViewModel method
                 Toast.makeText(context, "Expense saved", Toast.LENGTH_SHORT).show()
                 navController.popBackStack() // Navigate back after saving
             },

@@ -1,11 +1,10 @@
 package com.example.trackie_fyp.DataClass
 
 data class Income(
-    val id: Int,
+    val id: Int = 0, // Default value of 0 for a new income entry
     val amount: Double,
-    val source: String,
-    val description: String,
+    val description: String = "", // Default empty description
     val date: String,
-    val budgetId: Int? = null, // Default value for budgetId
-    val category: Category? = null // Default value for category
+    val category: Category?,
+    val userId: Int
 )

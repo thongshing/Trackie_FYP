@@ -3,9 +3,7 @@ package com.example.trackie_fyp.iu
 
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +22,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -41,27 +40,32 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.text.ParseException
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import java.text.DateFormatSymbols
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavHostController, expenseViewModel: ExpenseViewModel = viewModel()) {
+fun HomeScreen(navController: NavHostController, userId: Int, expenseViewModel: ExpenseViewModel = viewModel()) {
     val context = LocalContext.current
     val expenses by expenseViewModel.expenses.observeAsState(emptyList())
     val incomes by expenseViewModel.incomes.observeAsState(emptyList())
 
     var selectedMonth by remember { mutableStateOf(getCurrentMonth()) }
     var selectedYear by remember { mutableStateOf(getCurrentYear()) }
+    var showDatePickerDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        expenseViewModel.loadLatestTransactions()
+        expenseViewModel.loadLatestTransactions(userId)
     }
 
-    val filteredExpenses = expenses.filter { it.date.matchesMonthAndYear(selectedMonth, selectedYear) }.sortedByDescending { it.date.toDate() }
-    val filteredIncomes = incomes.filter { it.date.matchesMonthAndYear(selectedMonth, selectedYear) }.sortedByDescending { it.date.toDate() }
+    val filteredExpenses = expenses.filter { it.date.matchesMonthAndYear(selectedMonth, selectedYear) }
+        .sortedByDescending { it.date.toDate() }
+    val filteredIncomes = incomes.filter { it.date.matchesMonthAndYear(selectedMonth, selectedYear) }
+        .sortedByDescending { it.date.toDate() }
 
     val totalIncome = filteredIncomes.sumOf { it.amount }
     val totalExpenses = filteredExpenses.sumOf { it.amount }
@@ -70,15 +74,21 @@ fun HomeScreen(navController: NavHostController, expenseViewModel: ExpenseViewMo
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {},
+                title = { Text("Transactions for ${DateFormatSymbols().months[selectedMonth - 1]} $selectedYear") },
                 actions = {
-                    MonthYearDropdownMenu(selectedMonth, selectedYear, onMonthYearSelected = { month, year ->
-                        selectedMonth = month
-                        selectedYear = year
-                    })
+                    IconButton(onClick = { showDatePickerDialog = true }) {
+                        Icon(Icons.Default.CalendarToday, contentDescription = "Select Month and Year")
+                    }
                 }
             )
         },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { navController.navigate("add") },
+                containerColor = Color(0xFF757575)) {
+                Icon(Icons.Default.Add, contentDescription = "Add Transaction")
+            }
+        },
+        floatingActionButtonPosition = FabPosition.End,
         content = { paddingValues ->
             LazyColumn(
                 modifier = Modifier
@@ -105,7 +115,7 @@ fun HomeScreen(navController: NavHostController, expenseViewModel: ExpenseViewMo
                     SwipeToDismissItem(
                         transaction = income,
                         onEdit = { navController.navigate("editIncome/${income.id}") },
-                        onDelete = { expenseViewModel.deleteIncome(income.id) }
+                        onDelete = { expenseViewModel.deleteIncome(income.id, userId) }
                     )
                     Divider()
                 }
@@ -119,44 +129,23 @@ fun HomeScreen(navController: NavHostController, expenseViewModel: ExpenseViewMo
                     SwipeToDismissItem(
                         transaction = expense,
                         onEdit = { navController.navigate("editExpense/${expense.id}") },
-                        onDelete = { expenseViewModel.deleteExpense(expense.id) }
+                        onDelete = { expenseViewModel.deleteExpense(expense.id, userId) }
                     )
                     Divider()
                 }
             }
         }
     )
-}
 
-
-@Composable
-fun MonthYearDropdownMenu(
-    selectedMonth: String,
-    selectedYear: Int,
-    onMonthYearSelected: (String, Int) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        TextButton(onClick = { expanded = true }) {
-            Text(text = "$selectedMonth $selectedYear")
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            val months = getMonthList()
-            val years = getYearList()
-
-            years.forEach { year ->
-                months.forEach { month ->
-                    DropdownMenuItem(
-                        text = { Text(text = "$month $year") },
-                        onClick = {
-                            onMonthYearSelected(month, year)
-                            expanded = false
-                        }
-                    )
-                }
+    if (showDatePickerDialog) {
+        CustomMonthYearPicker(
+            onDismissRequest = { showDatePickerDialog = false },
+            onMonthYearSelected = { month, year ->
+                selectedMonth = month
+                selectedYear = year
+                showDatePickerDialog = false
             }
-        }
+        )
     }
 }
 
@@ -189,19 +178,15 @@ fun <T : Any> SwipeToDismissItem(
             .height(60.dp) // Set the height of the item
             .padding(vertical = 4.dp),
         backgroundContent = {
-            val color = when (dismissState.currentValue) {
-                SwipeToDismissBoxValue.EndToStart -> Color.Red
-                else -> Color.Transparent
-            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(color)
+                    .background(Color.Transparent)
                     .padding(horizontal = 8.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Text(
-                    text = "Delete",
+                    text = "",
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge
                 )
@@ -275,9 +260,9 @@ fun TransactionItem(transaction: Any, onEdit: () -> Unit) {
 
 
 
-private fun getCurrentMonth(): String {
-    val dateFormat = SimpleDateFormat("MMMM", Locale.getDefault())
-    return dateFormat.format(Date())
+private fun getCurrentMonth(): Int {
+    val calendar = Calendar.getInstance()
+    return calendar.get(Calendar.MONTH) + 1 // Months are 0-based in Calendar
 }
 
 private fun getCurrentYear(): Int {
@@ -285,31 +270,66 @@ private fun getCurrentYear(): Int {
     return calendar.get(Calendar.YEAR)
 }
 
-private fun getMonthList(): List<String> {
-    val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("MMMM", Locale.getDefault())
-    return (0..11).map {
-        calendar.set(Calendar.MONTH, it)
-        dateFormat.format(calendar.time)
+
+fun String.matchesMonthAndYear(month: Int, year: Int): Boolean {
+    val date = this.toDate() ?: return false
+    val calendar = Calendar.getInstance().apply { time = date }
+    return (calendar.get(Calendar.MONTH) + 1 == month) && (calendar.get(Calendar.YEAR) == year)
+}
+
+fun String.toDate(): Date? {
+    return try {
+        val format = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        format.parse(this)
+    } catch (e: ParseException) {
+        e.printStackTrace()
+        null
     }
 }
 
-private fun getYearList(): List<Int> {
-    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-    return (currentYear - 5..currentYear + 5).toList()
+@Composable
+private fun HomeMonthDropdownMenu(selectedMonth: Int, onMonthSelected: (Int) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        TextButton(onClick = { expanded = true }) {
+            Text(text = DateFormatSymbols().months[selectedMonth - 1])
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            (1..12).forEach { month ->
+                DropdownMenuItem(
+                    text = { Text(text = DateFormatSymbols().months[month - 1]) },
+                    onClick = {
+                        onMonthSelected(month)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
 }
 
-fun String.matchesMonthAndYear(month: String, year: Int): Boolean {
-    val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-    val date = dateFormat.parse(this)
-    val monthFormat = SimpleDateFormat("MMMM", Locale.getDefault())
-    val yearFormat = SimpleDateFormat("yyyy", Locale.getDefault())
-    return monthFormat.format(date) == month && yearFormat.format(date).toInt() == year
-}
+@Composable
+private fun HomeYearDropdownMenu(selectedYear: Int, onYearSelected: (Int) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
 
-fun String.toDate(): Date {
-    val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-    return dateFormat.parse(this)
+    Box {
+        TextButton(onClick = { expanded = true }) {
+            Text(text = selectedYear.toString())
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+            (currentYear - 10..currentYear + 10).forEach { year ->
+                DropdownMenuItem(
+                    text = { Text(text = year.toString()) },
+                    onClick = {
+                        onYearSelected(year)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -353,10 +373,3 @@ fun CategoryBreakdownSection(expenses: List<Expense>) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    Trackie_FYPTheme {
-        HomeScreen(navController = rememberNavController())
-    }
-}
