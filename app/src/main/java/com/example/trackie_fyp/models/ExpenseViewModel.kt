@@ -12,6 +12,7 @@ import com.example.trackie_fyp.DataClass.Expense
 import com.example.trackie_fyp.DataClass.Income
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ExpenseViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -24,8 +25,14 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
 
     fun loadLatestTransactions(userId: Int) {
         viewModelScope.launch {
-            _expenses.value = dbHelper.getLatestExpenses(userId)
-            _incomes.value = dbHelper.getLatestIncomes(userId)
+            try {
+                val latestExpenses = withContext(Dispatchers.IO) { dbHelper.getLatestExpenses(userId) }
+                val latestIncomes = withContext(Dispatchers.IO) { dbHelper.getLatestIncomes(userId) }
+                _expenses.postValue(latestExpenses)
+                _incomes.postValue(latestIncomes)
+            } catch (e: Exception) {
+                Log.e("ExpenseViewModel", "Error loading latest transactions", e)
+            }
         }
     }
 
@@ -33,10 +40,10 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         val incomeLiveData = MutableLiveData<Income?>()
         viewModelScope.launch {
             try {
-                val income = dbHelper.getIncomeById(id)
+                val income = withContext(Dispatchers.IO) { dbHelper.getIncomeById(id) }
                 incomeLiveData.postValue(income)
             } catch (e: Exception) {
-                // Log and handle the exception as needed
+                Log.e("ExpenseViewModel", "Error getting income by id", e)
                 incomeLiveData.postValue(null)
             }
         }
@@ -47,10 +54,10 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
         val expenseLiveData = MutableLiveData<Expense?>()
         viewModelScope.launch {
             try {
-                val expense = dbHelper.getExpenseById(id)
+                val expense = withContext(Dispatchers.IO) { dbHelper.getExpenseById(id) }
                 expenseLiveData.postValue(expense)
             } catch (e: Exception) {
-                // Log and handle the exception as needed
+                Log.e("ExpenseViewModel", "Error getting expense by id", e)
                 expenseLiveData.postValue(null)
             }
         }
@@ -58,23 +65,31 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun loadExpenses(userId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val expensesList = dbHelper.getAllExpenses(userId)
-            _expenses.postValue(expensesList)
+        viewModelScope.launch {
+            try {
+                val expensesList = withContext(Dispatchers.IO) { dbHelper.getAllExpenses(userId) }
+                _expenses.postValue(expensesList)
+            } catch (e: Exception) {
+                Log.e("ExpenseViewModel", "Error loading expenses", e)
+            }
         }
     }
 
     fun loadIncomes(userId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val incomesList = dbHelper.getAllIncomes(userId)
-            _incomes.postValue(incomesList)
+        viewModelScope.launch {
+            try {
+                val incomesList = withContext(Dispatchers.IO) { dbHelper.getAllIncomes(userId) }
+                _incomes.postValue(incomesList)
+            } catch (e: Exception) {
+                Log.e("ExpenseViewModel", "Error loading incomes", e)
+            }
         }
     }
 
     fun saveExpense(expense: Expense, userId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
-                dbHelper.addExpense(expense, userId)
+                withContext(Dispatchers.IO) { dbHelper.addExpense(expense, userId) }
                 loadExpenses(userId)
             } catch (e: Exception) {
                 Log.e("ExpenseViewModel", "Error saving expense", e)
@@ -83,9 +98,9 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun saveIncome(income: Income, userId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
-                dbHelper.addIncome(income, userId)
+                withContext(Dispatchers.IO) { dbHelper.addIncome(income, userId) }
                 loadIncomes(userId)
             } catch (e: Exception) {
                 Log.e("ExpenseViewModel", "Error saving income", e)
@@ -94,30 +109,46 @@ class ExpenseViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updateExpense(expense: Expense, userId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            dbHelper.updateExpense(expense)
-            loadExpenses(userId)
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { dbHelper.updateExpense(expense) }
+                loadExpenses(userId)
+            } catch (e: Exception) {
+                Log.e("ExpenseViewModel", "Error updating expense", e)
+            }
         }
     }
 
     fun updateIncome(income: Income, userId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            dbHelper.updateIncome(income)
-            loadIncomes(userId)
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { dbHelper.updateIncome(income) }
+                loadIncomes(userId)
+            } catch (e: Exception) {
+                Log.e("ExpenseViewModel", "Error updating income", e)
+            }
         }
     }
 
     fun deleteExpense(expenseId: Int, userId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            dbHelper.deleteExpense(expenseId)
-            loadExpenses(userId)
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { dbHelper.deleteExpense(expenseId) }
+                loadExpenses(userId)
+            } catch (e: Exception) {
+                Log.e("ExpenseViewModel", "Error deleting expense", e)
+            }
         }
     }
 
     fun deleteIncome(incomeId: Int, userId: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            dbHelper.deleteIncome(incomeId)
-            loadIncomes(userId)
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { dbHelper.deleteIncome(incomeId) }
+                loadIncomes(userId)
+            } catch (e: Exception) {
+                Log.e("ExpenseViewModel", "Error deleting income", e)
+            }
         }
     }
 }

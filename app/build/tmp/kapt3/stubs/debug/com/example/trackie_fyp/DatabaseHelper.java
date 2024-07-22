@@ -4,7 +4,7 @@ package com.example.trackie_fyp;
 public final class DatabaseHelper extends android.database.sqlite.SQLiteOpenHelper {
     @org.jetbrains.annotations.NotNull
     private static final java.lang.String DATABASE_NAME = "expenses.db";
-    private static final int DATABASE_VERSION = 15;
+    private static final int DATABASE_VERSION = 17;
     @kotlin.jvm.Volatile
     @org.jetbrains.annotations.Nullable
     private static volatile com.example.trackie_fyp.DatabaseHelper INSTANCE;

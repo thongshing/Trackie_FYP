@@ -98,7 +98,7 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata:1.6.8")
     implementation("io.github.vanpra.compose-material-dialogs:datetime:0.9.0")
     implementation("com.google.dagger:hilt-android:2.49")
-    implementation ("com.github.tehras:charts:0.2.4-alpha")
+//    implementation ("com.github.tehras:charts:0.2.4-alpha")
     implementation ("com.github.PhilJay:MPAndroidChart:v3.1.0")
     kapt("com.google.dagger:hilt-compiler:2.49")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")

@@ -44,6 +44,8 @@ import java.text.ParseException
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import com.example.trackie_fyp.ui.theme.AppThemeSwitcher
+import com.example.trackie_fyp.ui.theme.AppThemeSwitcher.isDarkMode
 import java.text.DateFormatSymbols
 
 
@@ -53,6 +55,7 @@ fun HomeScreen(navController: NavHostController, userId: Int, expenseViewModel: 
     val context = LocalContext.current
     val expenses by expenseViewModel.expenses.observeAsState(emptyList())
     val incomes by expenseViewModel.incomes.observeAsState(emptyList())
+    val isDarkMode by AppThemeSwitcher.isDarkMode
 
     var selectedMonth by remember { mutableStateOf(getCurrentMonth()) }
     var selectedYear by remember { mutableStateOf(getCurrentYear()) }
@@ -70,6 +73,7 @@ fun HomeScreen(navController: NavHostController, userId: Int, expenseViewModel: 
     val totalIncome = filteredIncomes.sumOf { it.amount }
     val totalExpenses = filteredExpenses.sumOf { it.amount }
     val remainingBudget = totalIncome - totalExpenses
+    val contentColor = if (isDarkMode) Color.LightGray else Color(0xFFB2AFA5)
 
     Scaffold(
         topBar = {
@@ -84,7 +88,7 @@ fun HomeScreen(navController: NavHostController, userId: Int, expenseViewModel: 
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { navController.navigate("add") },
-                containerColor = Color(0xFF757575)) {
+                containerColor = contentColor) {
                 Icon(Icons.Default.Add, contentDescription = "Add Transaction")
             }
         },
@@ -287,50 +291,6 @@ fun String.toDate(): Date? {
     }
 }
 
-@Composable
-private fun HomeMonthDropdownMenu(selectedMonth: Int, onMonthSelected: (Int) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        TextButton(onClick = { expanded = true }) {
-            Text(text = DateFormatSymbols().months[selectedMonth - 1])
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            (1..12).forEach { month ->
-                DropdownMenuItem(
-                    text = { Text(text = DateFormatSymbols().months[month - 1]) },
-                    onClick = {
-                        onMonthSelected(month)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun HomeYearDropdownMenu(selectedYear: Int, onYearSelected: (Int) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        TextButton(onClick = { expanded = true }) {
-            Text(text = selectedYear.toString())
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-            (currentYear - 10..currentYear + 10).forEach { year ->
-                DropdownMenuItem(
-                    text = { Text(text = year.toString()) },
-                    onClick = {
-                        onYearSelected(year)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
 
 @Composable
 fun SummarySection(totalIncome: Double, totalExpenses: Double, remainingBudget: Double) {

@@ -1,3 +1,4 @@
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -9,6 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,11 +24,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.trackie_fyp.AppNavigation
 import com.example.trackie_fyp.DatabaseHelper
+import com.example.trackie_fyp.ui.theme.AppThemeSwitcher
 import com.example.trackie_fyp.ui.theme.Trackie_FYPTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(userId: Int) {
+    Log.d("MainScreen", "Received userId: $userId")
     val navController = rememberNavController()
     val context = LocalContext.current
     val dbHelper = remember { DatabaseHelper(context) }
@@ -45,6 +49,13 @@ fun MainScreen(userId: Int) {
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
+    val isDarkMode by AppThemeSwitcher.isDarkMode
+
+    val backgroundColor = if (isDarkMode) Color.DarkGray else Color(0xFFFFFEFB)
+    val contentColor = if (isDarkMode) Color.LightGray else Color(0xFFB2AFA5)
+    val selectedContentColor = if (isDarkMode) Color.White else Color.Black
+    val unselectedContentColor = if (isDarkMode) Color.Gray else Color.DarkGray
+
     val items = listOf(
         BottomNavItem("Home", Icons.Filled.Home, "home"),
         BottomNavItem("Report", Icons.Filled.AutoGraph, "report"),
@@ -54,8 +65,8 @@ fun BottomNavigationBar(navController: NavHostController) {
     )
 
     BottomNavigation(
-        backgroundColor = Color.White,
-        contentColor = Color.Gray
+        backgroundColor = backgroundColor,
+        contentColor = contentColor
     ) {
         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
         items.forEach { item ->
@@ -65,11 +76,11 @@ fun BottomNavigationBar(navController: NavHostController) {
                         Box(
                             modifier = Modifier
                                 .size(56.dp)
-                                .background(Color.LightGray, shape = CircleShape)
+                                .background(contentColor, shape = CircleShape)
                                 .padding(10.dp),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(item.icon, contentDescription = item.label, tint = Color.Black)
+                            Icon(item.icon, contentDescription = item.label, tint = selectedContentColor)
                         }
                     } else {
                         Icon(item.icon, contentDescription = item.label)
@@ -77,8 +88,8 @@ fun BottomNavigationBar(navController: NavHostController) {
                 },
                 label = { Text(item.label) },
                 selected = currentRoute == item.route,
-                selectedContentColor = Color.Black,
-                unselectedContentColor = Color.Gray,
+                selectedContentColor = selectedContentColor,
+                unselectedContentColor = unselectedContentColor,
                 onClick = {
                     navController.navigate(item.route) {
                         navController.graph.startDestinationRoute?.let { route ->

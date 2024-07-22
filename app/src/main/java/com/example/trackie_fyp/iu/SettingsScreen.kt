@@ -37,13 +37,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.trackie_fyp.models.LoginViewModel
+import com.example.trackie_fyp.models.UserViewModel
 import com.example.trackie_fyp.ui.theme.AppThemeSwitcher
 
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SettingsScreen(navController: NavController, userId: Int) {
-    val viewModel: LoginViewModel = viewModel()
+    val viewModel: UserViewModel = viewModel()
     val isDarkMode by AppThemeSwitcher.isDarkMode
 
     Scaffold {

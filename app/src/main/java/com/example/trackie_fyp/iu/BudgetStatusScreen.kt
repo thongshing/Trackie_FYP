@@ -54,6 +54,7 @@ import androidx.navigation.NavHostController
 import com.example.trackie_fyp.DatabaseHelper
 import com.example.trackie_fyp.models.BudgetViewModel
 import com.example.trackie_fyp.models.BudgetViewModelFactory
+import com.example.trackie_fyp.ui.theme.AppThemeSwitcher
 import java.text.DateFormatSymbols
 import java.util.Calendar
 
@@ -63,6 +64,7 @@ import java.util.Calendar
 fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelper, userId: Int) {
     val factory = BudgetViewModelFactory(dbHelper, userId)
     val budgetViewModel: BudgetViewModel = viewModel(factory = factory)
+    val isDarkMode by AppThemeSwitcher.isDarkMode
 
     val budgets by budgetViewModel.budgets.observeAsState(emptyList())
     val expenses by budgetViewModel.expenses.observeAsState(emptyList())
@@ -70,6 +72,7 @@ fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelpe
     val selectedYear by budgetViewModel.selectedYear.observeAsState(Calendar.getInstance().get(Calendar.YEAR))
     var autoRepeat by remember { mutableStateOf(false) }
     var showDatePickerDialog by remember { mutableStateOf(false) }
+    val contentColor = if (isDarkMode) Color.LightGray else Color(0xFFB2AFA5)
 
     LaunchedEffect(selectedMonth, selectedYear) {
         //autoRepeat = budgetViewModel.isAutoRepeatEnabled(selectedMonth, selectedYear)
@@ -97,7 +100,7 @@ fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelpe
             FloatingActionButton(onClick = {
                 navController.navigate("manageBudget?month=$selectedMonth&year=$selectedYear")
             },
-                containerColor = Color(0xFF757575)) {
+                containerColor = contentColor) {
                 Icon(Icons.Default.Add, contentDescription = "Add/Edit Budget")
             }
         },

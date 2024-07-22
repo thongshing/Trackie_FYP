@@ -1,5 +1,6 @@
 package com.example.trackie_fyp
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -24,9 +25,12 @@ import java.util.Calendar
 fun AppNavigation(navController: NavHostController, dbHelper: DatabaseHelper, userId: Int) {
     NavHost(
         navController = navController,
-        startDestination = if (userId != -1) "home" else "login"
+        startDestination = "home"
     ) {
-        composable("home") { HomeScreen(navController, userId) }
+        composable("home") {
+            Log.d("AppNavigation", "Navigating to HomeScreen with userId: $userId")
+            HomeScreen(navController, userId)
+        }
         composable("add") { AddScreen(navController, userId) }
         composable(
             "addIncome/{userId}",

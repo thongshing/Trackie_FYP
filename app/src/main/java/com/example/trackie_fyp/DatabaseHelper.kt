@@ -15,7 +15,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "expenses.db"
-        private const val DATABASE_VERSION = 15
+        private const val DATABASE_VERSION = 17
 
         @Volatile
         private var INSTANCE: DatabaseHelper? = null
@@ -70,6 +70,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COLUMN_INCOME_DESCRIPTION = "description"
         const val COLUMN_INCOME_CATEGORY_ID = "category_id"
         const val COLUMN_INCOME_USER_ID = "user_id"
+
+        //const val TABLE_RECEIPT = "Receipt"
 
     }
 
@@ -151,6 +153,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("DROP TABLE IF EXISTS $TABLE_BUDGET")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CATEGORY")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_USER")
+        //db.execSQL("DROP TABLE IF EXISTS $TABLE_RECEIPT")
         onCreate(db)
 
 
