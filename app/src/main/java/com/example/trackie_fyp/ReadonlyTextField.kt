@@ -12,8 +12,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.example.trackie_fyp.ui.theme.AppThemeSwitcher
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,6 +27,8 @@ fun ReadonlyTextField(
     label: @Composable () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDarkMode by AppThemeSwitcher.isDarkMode
+
     Box(modifier = modifier.clickable { onClick() }) {
         OutlinedTextField(
             value = value,
@@ -33,13 +37,13 @@ fun ReadonlyTextField(
             modifier = Modifier.fillMaxWidth(),
             enabled = false,
             colors = TextFieldDefaults.outlinedTextFieldColors(
-                disabledTextColor = Color.Black,
-                disabledLabelColor = Color.Black,
-                disabledBorderColor = Color.Black,
-                disabledLeadingIconColor = Color.Black.copy(alpha = ContentAlpha.disabled),
-                disabledTrailingIconColor = Color.Black.copy(alpha = ContentAlpha.disabled),
-                disabledPlaceholderColor = Color.Black.copy(alpha = ContentAlpha.disabled),
-                disabledSupportingTextColor = Color.Black.copy(alpha = ContentAlpha.disabled)
+                disabledTextColor = if (isDarkMode) Color(0xFFAEAAAA) else Color.Black,
+                disabledLabelColor = if (isDarkMode) Color(0xFFAEAAAA) else Color.Black,
+                disabledBorderColor = if (isDarkMode) Color(0xFFAEAAAA) else Color.Black,
+                disabledLeadingIconColor = if (isDarkMode) Color(0xFFAEAAAA).copy(alpha = ContentAlpha.disabled) else Color.Black.copy(alpha = ContentAlpha.disabled),
+                disabledTrailingIconColor = if (isDarkMode) Color(0xFFAEAAAA).copy(alpha = ContentAlpha.disabled) else Color.Black.copy(alpha = ContentAlpha.disabled),
+                disabledPlaceholderColor = if (isDarkMode) Color(0xFFAEAAAA).copy(alpha = ContentAlpha.disabled) else Color.Black.copy(alpha = ContentAlpha.disabled),
+                disabledSupportingTextColor = if (isDarkMode) Color(0xFFAEAAAA).copy(alpha = ContentAlpha.disabled) else Color.Black.copy(alpha = ContentAlpha.disabled)
             )
         )
     }

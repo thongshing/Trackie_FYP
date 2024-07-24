@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -75,6 +76,10 @@ fun TotalAmountScreen(
         val dateState = rememberDatePickerState()
         val textState = remember { mutableStateOf(receiptDate) }
 
+        var amountError by remember { mutableStateOf(false) }
+        var categoryError by remember { mutableStateOf(false) }
+        var dateError by remember { mutableStateOf(false) }
+
         ReadonlyTextField(
             value = textState.value,
             onValueChange = {},
@@ -82,6 +87,13 @@ fun TotalAmountScreen(
             label = { Text("Date") },
             modifier = Modifier.fillMaxWidth()
         )
+        if (dateError) {
+            Text(
+                text = "Please enter a valid date in the format dd.MM.yyyy",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
 
         if (dialogState.value) {
             DatePickerDialog(
@@ -93,6 +105,7 @@ fun TotalAmountScreen(
                         }
                         textState.value = selectedDate?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: ""
                         dialogState.value = false
+                        dateError = !isValidDate(textState.value)
                     }) {
                         Text("OK")
                     }
@@ -111,11 +124,22 @@ fun TotalAmountScreen(
 
         OutlinedTextField(
             value = amount.value,
-            onValueChange = { amount.value = it },
+            onValueChange = {
+                amount.value = it
+                amountError = it.isBlank() || it.toDoubleOrNull() == null
+            },
             label = { Text("Amount") },
+            isError = amountError,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
+        if (amountError) {
+            Text(
+                text = "Please enter a valid amount",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -133,6 +157,13 @@ fun TotalAmountScreen(
             onCategorySelected = { selectedCategory = it },
             categories = expenseCategories
         )
+        if (categoryError) {
+            Text(
+                text = "Please select a category",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -140,17 +171,33 @@ fun TotalAmountScreen(
 
         Button(
             onClick = {
-                val expense = Expense(
-                    id = 0, // SQLite will auto-generate the ID
-                    date = textState.value,
-                    amount = amount.value.toDouble(),
-                    category = selectedCategory,
-                    description = description.value,
-                    userId = userId // Pass userId to the Expense object
-                )
-                expenseViewModel.saveExpense(expense, userId) // Pass userId to the ViewModel method
-                Toast.makeText(context, "Expense saved", Toast.LENGTH_SHORT).show()
-                navController.popBackStack() // Navigate back after saving
+                amountError = amount.value.isBlank() || amount.value.toDoubleOrNull() == null
+                dateError = !isValidDate(textState.value)
+                categoryError = selectedCategory == null
+
+                if (!amountError && !categoryError && !dateError) {
+                    val budgetId = expenseViewModel.getBudgetIdForCategory(
+                        categoryId = selectedCategory?.id ?: 0,
+                        month = textState.value.toMonth(),
+                        year = textState.value.toYear(),
+                        userId = userId
+                    )
+
+                    val expense = Expense(
+                        id = 0, // SQLite will auto-generate the ID
+                        date = textState.value,
+                        amount = amount.value.toDouble(),
+                        category = selectedCategory,
+                        description = description.value,
+                        userId = userId,
+                        budgetId = budgetId
+                    )
+                    expenseViewModel.saveExpense(expense, userId)
+                    Toast.makeText(context, "Expense saved", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack() // Navigate back after saving
+                } else {
+                    Toast.makeText(context, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -169,8 +216,6 @@ fun TotalAmountScreen(
         }
     }
 }
-
-
 
 
 

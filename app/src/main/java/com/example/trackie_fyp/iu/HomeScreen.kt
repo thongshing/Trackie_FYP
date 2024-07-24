@@ -4,6 +4,7 @@ package com.example.trackie_fyp.iu
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,18 +13,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.MoneyOff
+import androidx.compose.material.icons.filled.Savings
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -34,7 +39,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.trackie_fyp.DataClass.Expense
 import com.example.trackie_fyp.DataClass.Income
 import com.example.trackie_fyp.models.ExpenseViewModel
-import com.example.trackie_fyp.ui.theme.Trackie_FYPTheme
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -44,9 +48,10 @@ import java.text.ParseException
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.trackie_fyp.ui.theme.AppThemeSwitcher
-import com.example.trackie_fyp.ui.theme.AppThemeSwitcher.isDarkMode
 import java.text.DateFormatSymbols
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,6 +65,7 @@ fun HomeScreen(navController: NavHostController, userId: Int, expenseViewModel: 
     var selectedMonth by remember { mutableStateOf(getCurrentMonth()) }
     var selectedYear by remember { mutableStateOf(getCurrentYear()) }
     var showDatePickerDialog by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         expenseViewModel.loadLatestTransactions(userId)
@@ -75,10 +81,22 @@ fun HomeScreen(navController: NavHostController, userId: Int, expenseViewModel: 
     val remainingBudget = totalIncome - totalExpenses
     val contentColor = if (isDarkMode) Color.LightGray else Color(0xFFB2AFA5)
 
+    val combinedTransactions = (filteredExpenses + filteredIncomes)
+        .sortedByDescending { it.getDateAsDate() }
+        .filter {
+            when (it) {
+                is Expense -> it.matchesSearchQuery(searchQuery)
+                is Income -> it.matchesSearchQuery(searchQuery)
+                else -> false
+            }
+        }
+
+    val groupedTransactions = combinedTransactions.groupBy { it.getDateString() }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Transactions for ${DateFormatSymbols().months[selectedMonth - 1]} $selectedYear") },
+                title = { Text("${DateFormatSymbols().months[selectedMonth - 1]} $selectedYear") },
                 actions = {
                     IconButton(onClick = { showDatePickerDialog = true }) {
                         Icon(Icons.Default.CalendarToday, contentDescription = "Select Month and Year")
@@ -107,35 +125,38 @@ fun HomeScreen(navController: NavHostController, userId: Int, expenseViewModel: 
                     Spacer(modifier = Modifier.height(16.dp))
                 }
                 item {
-                    CategoryBreakdownSection(filteredExpenses)
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        label = { Text("Search Transactions") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Search, contentDescription = "Search Icon")
+                        },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            focusedLabelColor = MaterialTheme.colorScheme.primary,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    )
                 }
                 item {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
                 item {
-                    Text(text = "Income Transactions", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                }
-                items(filteredIncomes) { income ->
-                    SwipeToDismissItem(
-                        transaction = income,
-                        onEdit = { navController.navigate("editIncome/${income.id}") },
-                        onDelete = { expenseViewModel.deleteIncome(income.id, userId) }
+                    Text(
+                        text = "Transactions",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
-                    Divider()
                 }
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-                item {
-                    Text(text = "Expense Transactions", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                }
-                items(filteredExpenses) { expense ->
-                    SwipeToDismissItem(
-                        transaction = expense,
-                        onEdit = { navController.navigate("editExpense/${expense.id}") },
-                        onDelete = { expenseViewModel.deleteExpense(expense.id, userId) }
-                    )
-                    Divider()
+                groupedTransactions.forEach { (date, transactions) ->
+                    item {
+                        TransactionBox(date, transactions, navController, expenseViewModel, userId)
+                    }
                 }
             }
         }
@@ -153,6 +174,68 @@ fun HomeScreen(navController: NavHostController, userId: Int, expenseViewModel: 
     }
 }
 
+fun Expense.matchesSearchQuery(query: String): Boolean {
+    return category?.name?.contains(query, ignoreCase = true) == true || description.contains(query, ignoreCase = true)
+}
+
+fun Income.matchesSearchQuery(query: String): Boolean {
+    return category?.name?.contains(query, ignoreCase = true) == true || description.contains(query, ignoreCase = true)
+}
+
+
+@Composable
+fun TransactionBox(
+    date: String,
+    transactions: List<Any>,
+    navController: NavHostController,
+    expenseViewModel: ExpenseViewModel,
+    userId: Int
+) {
+    val isDarkMode by AppThemeSwitcher.isDarkMode
+    val backgroundColor = if (isDarkMode) Color.DarkGray else Color(0xFFFFFEFB)
+    val textColor = if (isDarkMode) Color(0xFFFFFEFB) else Color(0xFF232321)
+    val borderColor = if (isDarkMode) Color(0xFF303030) else Color(0xFFF1F0F0)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+            .background(backgroundColor, shape = RoundedCornerShape(8.dp))
+            .border(BorderStroke(1.dp, borderColor))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = date,
+                style = MaterialTheme.typography.bodyLarge.copy(color = textColor),
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            transactions.forEach { transaction ->
+                SwipeToDismissItem(
+                    transaction = transaction,
+                    onEdit = { navController.navigate(getEditRoute(transaction)) },
+                    onDelete = { deleteTransaction(expenseViewModel, transaction, userId) }
+                )
+                Divider()
+            }
+        }
+    }
+}
+
+private fun getEditRoute(transaction: Any): String {
+    return when (transaction) {
+        is Income -> "editIncome/${transaction.id}"
+        is Expense -> "editExpense/${transaction.id}"
+        else -> ""
+    }
+}
+
+private fun deleteTransaction(expenseViewModel: ExpenseViewModel, transaction: Any, userId: Int) {
+    when (transaction) {
+        is Income -> expenseViewModel.deleteIncome(transaction.id, userId)
+        is Expense -> expenseViewModel.deleteExpense(transaction.id, userId)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -202,6 +285,9 @@ fun <T : Any> SwipeToDismissItem(
     )
 }
 
+
+
+
 @Composable
 fun TransactionItem(transaction: Any, onEdit: () -> Unit) {
     when (transaction) {
@@ -220,7 +306,7 @@ fun TransactionItem(transaction: Any, onEdit: () -> Unit) {
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = transaction.date,
+                        text = transaction.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )
@@ -228,7 +314,7 @@ fun TransactionItem(transaction: Any, onEdit: () -> Unit) {
                 Text(
                     text = "RM ${String.format("%.2f", transaction.amount)}",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.Green
+                    color = Color(0xFF93C47D)
                 )
             }
         }
@@ -247,7 +333,7 @@ fun TransactionItem(transaction: Any, onEdit: () -> Unit) {
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
-                        text = transaction.date,
+                        text = transaction.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray
                     )
@@ -255,14 +341,12 @@ fun TransactionItem(transaction: Any, onEdit: () -> Unit) {
                 Text(
                     text = "RM ${String.format("%.2f", transaction.amount)}",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.Red
+                    color = Color(0xFFC3352B)
                 )
             }
         }
     }
 }
-
-
 
 private fun getCurrentMonth(): Int {
     val calendar = Calendar.getInstance()
@@ -273,7 +357,6 @@ private fun getCurrentYear(): Int {
     val calendar = Calendar.getInstance()
     return calendar.get(Calendar.YEAR)
 }
-
 
 fun String.matchesMonthAndYear(month: Int, year: Int): Boolean {
     val date = this.toDate() ?: return false
@@ -291,45 +374,171 @@ fun String.toDate(): Date? {
     }
 }
 
+fun Date.toDateString(): String {
+    val format = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+    return format.format(this)
+}
+
+fun Any.getDateAsDate(): Date {
+    return when (this) {
+        is Income -> this.date.toDate()!!
+        is Expense -> this.date.toDate()!!
+        else -> throw IllegalArgumentException("Unknown transaction type")
+    }
+}
+
+fun Any.getDateString(): String {
+    return when (this) {
+        is Income -> this.date
+        is Expense -> this.date
+        else -> throw IllegalArgumentException("Unknown transaction type")
+    }
+}
 
 @Composable
 fun SummarySection(totalIncome: Double, totalExpenses: Double, remainingBudget: Double) {
+    val isDarkMode by AppThemeSwitcher.isDarkMode
+    val backgroundColor = if (isDarkMode) Color.DarkGray else Color(0xFFEEEEEE)
+    val textColor = if (isDarkMode) Color.White else Color(0xFF232321)
+    val iconColor = if (isDarkMode) Color(0xFF4CAF50) else Color(0xFF1B5E20)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Gray, shape = MaterialTheme.shapes.medium)
+            .background(backgroundColor, shape = MaterialTheme.shapes.medium)
             .padding(16.dp),
+//            .shadow(4.dp, shape = MaterialTheme.shapes.medium),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Budget Summary", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = "Total Income: RM ${String.format("%.2f", totalIncome)}", style = MaterialTheme.typography.bodyLarge)
-        Text(text = "Total Expenses: RM ${String.format("%.2f", totalExpenses)}", style = MaterialTheme.typography.bodyLarge)
-        Text(text = "Remaining Budget: RM ${String.format("%.2f", remainingBudget)}", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+        Text(
+            text = "Budget Summary",
+            style = MaterialTheme.typography.headlineSmall.copy(color = textColor),
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SummaryItem(
+            icon = Icons.Default.AttachMoney,
+            label = "Total Income",
+            amount = totalIncome,
+            textColor = textColor,
+            iconColor = iconColor
+        )
+        Divider(color = textColor.copy(alpha = 0.5f), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+
+        SummaryItem(
+            icon = Icons.Default.MoneyOff,
+            label = "Total Expenses",
+            amount = totalExpenses,
+            textColor = textColor,
+            iconColor = Color(0xFFC3352B)
+        )
+        Divider(color = textColor.copy(alpha = 0.5f), thickness = 1.dp, modifier = Modifier.padding(vertical = 8.dp))
+
+        SummaryItem(
+            icon = Icons.Default.Savings,
+            label = "Remaining",
+            amount = remainingBudget,
+            textColor = textColor,
+            iconColor = Color(0xFF3677B2)
+        )
     }
 }
+
+@Composable
+fun SummaryItem(
+    icon: ImageVector,
+    label: String,
+    amount: Double,
+    textColor: Color,
+    iconColor: Color
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge.copy(color = textColor)
+            )
+        }
+        Text(
+            text = "RM ${String.format("%.2f", amount)}",
+            style = MaterialTheme.typography.bodyLarge.copy(color = textColor, fontWeight = FontWeight.Bold)
+        )
+    }
+}
+
 
 @SuppressLint("DefaultLocale")
 @Composable
 fun CategoryBreakdownSection(expenses: List<Expense>) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = "Category Breakdown", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+    val isDarkMode by AppThemeSwitcher.isDarkMode
+    val backgroundColor = if (isDarkMode) Color.DarkGray else Color(0xFFD8D7D2)
+    val textColor = if (isDarkMode) Color.White else Color(0xFF232321)
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Category Breakdown",
+            style = MaterialTheme.typography.headlineSmall.copy(color = textColor),
+            fontWeight = FontWeight.Bold
+        )
         Spacer(modifier = Modifier.height(8.dp))
 
         val categoryExpenses = expenses.groupBy { it.category?.name ?: "Unknown" }
         if (categoryExpenses.isEmpty()) {
             Log.d("CategoryBreakdown", "No expenses to show")
-            Text(text = "No expenses to show", style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = "No expenses to show",
+                style = MaterialTheme.typography.bodyLarge.copy(color = textColor)
+            )
         } else {
             categoryExpenses.forEach { (category, expenses) ->
                 val total = expenses.sumOf { it.amount }
                 Log.d("CategoryBreakdown", "Category: $category, Total: $total")
-                Text(
-                    text = "$category: RM ${String.format("%.2f", total)}",
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = backgroundColor),
+                    shape = MaterialTheme.shapes.medium,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = category,
+                            style = MaterialTheme.typography.bodyLarge.copy(color = textColor),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "RM ${String.format("%.2f", total)}",
+                            style = MaterialTheme.typography.bodyLarge.copy(color = textColor),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         }
     }
 }
-

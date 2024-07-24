@@ -55,7 +55,7 @@ fun SettingsScreen(navController: NavController, userId: Int) {
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
                 elevation = CardDefaults.cardElevation(4.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = CardDefaults.cardColors(containerColor = if (isDarkMode) Color.DarkGray else Color(0xFFFFFEFB))
             ) {
                 Column(
                     modifier = Modifier

@@ -61,8 +61,6 @@ fun BudgetScreen(navController: NavHostController, dbHelper: DatabaseHelper, mon
     val budgetViewModel: BudgetViewModel = viewModel(factory = factory)
 
     var income by remember { mutableStateOf("") }
-    var overallBudget by remember { mutableStateOf("") }
-    var isOverallBudget by remember { mutableStateOf(false) }
     val categories by budgetViewModel.categories.observeAsState(emptyList())
     val categoryBudgets = remember { mutableStateMapOf<Category, String>() }
     val selectedMonth by budgetViewModel.selectedMonth.observeAsState(month)
@@ -88,10 +86,12 @@ fun BudgetScreen(navController: NavHostController, dbHelper: DatabaseHelper, mon
 
     LaunchedEffect(budgetExists) {
         if (budgetExists == true) {
-            val budgetForMonthYear = budgetViewModel.budgets.value?.find { it.month == selectedMonth && it.year == selectedYear }
+            val budgetForMonthYear =
+                budgetViewModel.budgets.value?.find { it.month == selectedMonth && it.year == selectedYear }
             income = budgetForMonthYear?.amount?.toString() ?: ""
         } else {
-            val calculatedIncome = budgetViewModel.calculateIncomeForMonth(selectedMonth, selectedYear)
+            val calculatedIncome =
+                budgetViewModel.calculateIncomeForMonth(selectedMonth, selectedYear)
             income = calculatedIncome.toString()
         }
     }
@@ -109,7 +109,10 @@ fun BudgetScreen(navController: NavHostController, dbHelper: DatabaseHelper, mon
                 title = { Text("Manage Budget - ${DateFormatSymbols().months[selectedMonth - 1]} $selectedYear") },
                 actions = {
                     IconButton(onClick = { showDatePickerDialog = true }) {
-                        Icon(Icons.Default.CalendarToday, contentDescription = "Select Month and Year")
+                        Icon(
+                            Icons.Default.CalendarToday,
+                            contentDescription = "Select Month and Year"
+                        )
                     }
                 }
             )
@@ -133,40 +136,20 @@ fun BudgetScreen(navController: NavHostController, dbHelper: DatabaseHelper, mon
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Checkbox(
-                        checked = isOverallBudget,
-                        onCheckedChange = { isOverallBudget = it }
-                    )
-                    Text("Set Overall Budget")
-                }
+                Column {
+                    categories.forEach { category ->
+                        val existingBudget =
+                            budgetViewModel.budgets.value?.find { it.category?.id == category.id }
+                        val budgetText = existingBudget?.amount?.toString() ?: ""
 
-                if (isOverallBudget) {
-                    OutlinedTextField(
-                        value = overallBudget,
-                        onValueChange = { overallBudget = it },
-                        label = { Text("Overall Budget") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                } else {
-                    Column {
-                        categories.forEach { category ->
-                            val existingBudget = budgetViewModel.budgets.value?.find { it.category?.id == category.id }
-                            val budgetText = existingBudget?.amount?.toString() ?: ""
-
-                            OutlinedTextField(
-                                value = categoryBudgets[category] ?: budgetText,
-                                onValueChange = { categoryBudgets[category] = it },
-                                label = { Text("${category.name} Budget") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
+                        OutlinedTextField(
+                            value = categoryBudgets[category] ?: budgetText,
+                            onValueChange = { categoryBudgets[category] = it },
+                            label = { Text("${category.name} Budget") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
 
@@ -191,8 +174,12 @@ fun BudgetScreen(navController: NavHostController, dbHelper: DatabaseHelper, mon
                 ) {
                     Button(
                         onClick = {
-                            val incomeAmount = income.toDoubleOrNull() ?: 0.0
-                            budgetViewModel.saveBudgetIncome(incomeAmount, selectedMonth, selectedYear)
+                            //val incomeAmount = income.toDoubleOrNull() ?: 0.0
+//                            budgetViewModel.saveBudgetIncome(
+//                                incomeAmount,
+//                                selectedMonth,
+//                                selectedYear
+//                            )
                             budgetViewModel.saveCategoryBudgets(categoryBudgets)
 
                             navController.navigate("budgetStatus") // Navigate to budget status screen after saving
@@ -229,5 +216,7 @@ fun BudgetScreen(navController: NavHostController, dbHelper: DatabaseHelper, mon
             }
         )
     }
+
 }
+
 

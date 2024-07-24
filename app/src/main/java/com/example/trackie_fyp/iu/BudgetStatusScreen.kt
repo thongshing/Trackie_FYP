@@ -1,8 +1,10 @@
 package com.example.trackie_fyp.iu
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +21,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -59,6 +63,7 @@ import java.text.DateFormatSymbols
 import java.util.Calendar
 
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelper, userId: Int) {
@@ -73,13 +78,10 @@ fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelpe
     var autoRepeat by remember { mutableStateOf(false) }
     var showDatePickerDialog by remember { mutableStateOf(false) }
     val contentColor = if (isDarkMode) Color.LightGray else Color(0xFFB2AFA5)
+    val cardBackgroundColor = if (isDarkMode) Color.DarkGray else Color.White
+    val textColor = if (isDarkMode) Color.White else Color.Black
 
     LaunchedEffect(selectedMonth, selectedYear) {
-        //autoRepeat = budgetViewModel.isAutoRepeatEnabled(selectedMonth, selectedYear)
-        //budgetViewModel.checkAutoRepeat() // Check and apply auto-repeat settings if needed
-    }
-
-    LaunchedEffect(Unit) {
         budgetViewModel.loadBudgets()
         budgetViewModel.loadExpenses()
         budgetViewModel.loadExpenseCategories()
@@ -120,33 +122,58 @@ fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelpe
                         Text("No budgets allocated for this month.")
                     }
                 } else {
-                    budgets.filter { it.category?.type == "Expense" }.forEach { budget ->
-                        val spent = expenses.filter { it.category?.id == budget.category?.id }.sumOf { it.amount }
-                        val remaining = budget.amount - spent
-                        val progress = if (budget.amount > 0) spent / budget.amount else 0.0
+                    LazyColumn(
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        items(budgets.filter { it.category?.type == "Expense" }) { budget ->
+                            val spent = expenses.filter { it.category?.id == budget.category?.id }.sumOf { it.amount }
+                            val remaining = budget.amount - spent
+                            val progress = if (budget.amount > 0) spent / budget.amount else 0.0
 
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            Text(
-                                text = "${budget.category?.name}: RM ${String.format("%.2f", budget.amount)}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "Spent: RM ${String.format("%.2f", spent)}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "Remaining: RM ${String.format("%.2f", remaining)}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            LinearProgressIndicator(
-                                progress = progress.toFloat(),
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(8.dp)
-                                    .clip(RoundedCornerShape(4.dp)),
-                                color = if (remaining >= 0) Color.Green else Color.Red
-                            )
+                                    .padding(vertical = 8.dp)
+                                    .clickable {
+                                        navController.navigate("categoryTransactions/${budget.category?.id}/$selectedMonth/$selectedYear")
+                                    },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = cardBackgroundColor
+                                ),
+                                elevation = CardDefaults.cardElevation(4.dp),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "${budget.category?.name}: RM ${String.format("%.2f", budget.amount)}",
+                                        style = MaterialTheme.typography.bodyLarge.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = textColor
+                                        )
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "Spent: RM ${String.format("%.2f", spent)}",
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = textColor)
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = "Remaining: RM ${String.format("%.2f", remaining)}",
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = textColor)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    LinearProgressIndicator(
+                                        progress = progress.toFloat(),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(8.dp)
+                                            .clip(RoundedCornerShape(4.dp)),
+                                        color = if (remaining >= 0) Color.Green else Color.Red
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -159,7 +186,10 @@ fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelpe
                         checked = autoRepeat,
                         onCheckedChange = { checked ->
                             autoRepeat = checked
-                            //budgetViewModel.setAutoRepeat(checked)
+                            budgetViewModel.setAutoRepeat(checked)
+                            if (checked) {
+                                budgetViewModel.generateNextMonthBudget()
+                            }
                         }
                     )
                     Text("Auto-Repeat Budget for Next Month")

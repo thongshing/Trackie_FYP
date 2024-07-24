@@ -6,6 +6,6 @@ data class Expense(
     val amount: Double,
     val category: Category?,
     val description: String = "",
-    val budgetId: Int? = null,
+    val budgetId: Int?,
     val userId: Int // Include the userId to associate the expense with a user
 )

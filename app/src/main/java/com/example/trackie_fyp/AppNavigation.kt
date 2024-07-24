@@ -13,6 +13,7 @@ import com.example.trackie_fyp.iu.AddScreen
 import com.example.trackie_fyp.iu.BudgetScreen
 import com.example.trackie_fyp.iu.BudgetStatusScreen
 import com.example.trackie_fyp.iu.CategoryManagementScreen
+import com.example.trackie_fyp.iu.CategoryTransactionsScreen
 import com.example.trackie_fyp.iu.HomeScreen
 import com.example.trackie_fyp.iu.ReceiptScanningScreen
 import com.example.trackie_fyp.iu.ReportScreen
@@ -76,12 +77,19 @@ fun AppNavigation(navController: NavHostController, dbHelper: DatabaseHelper, us
             val year = backStackEntry.arguments?.getInt("year") ?: Calendar.getInstance().get(Calendar.YEAR)
             BudgetScreen(navController = navController, dbHelper = dbHelper, month = month, year = year, userId = userId)
         }
+        composable("categoryTransactions/{categoryId}/{month}/{year}") { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getString("categoryId")?.toInt() ?: 0
+            val month = backStackEntry.arguments?.getString("month")?.toInt() ?: 1
+            val year = backStackEntry.arguments?.getString("year")?.toInt() ?: Calendar.getInstance().get(Calendar.YEAR)
+            CategoryTransactionsScreen(navController, categoryId, month, year, userId)
+        }
+
         composable(
             "editExpense/{expenseId}",
             arguments = listOf(navArgument("expenseId") { type = NavType.IntType })
         ) { backStackEntry ->
             val expenseId = backStackEntry.arguments?.getInt("expenseId") ?: -1
-            AddExpenseScreen(navController, expenseId, userId)
+            AddExpenseScreen(navController, expenseId = expenseId, userId = userId)
         }
         composable(
             route = "editIncome/{incomeId}",

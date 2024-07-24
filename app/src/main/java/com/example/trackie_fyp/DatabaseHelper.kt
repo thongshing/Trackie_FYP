@@ -9,13 +9,17 @@ import com.example.trackie_fyp.DataClass.Budget
 import com.example.trackie_fyp.DataClass.Category
 import com.example.trackie_fyp.DataClass.Expense
 import com.example.trackie_fyp.DataClass.Income
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
         private const val DATABASE_NAME = "expenses.db"
-        private const val DATABASE_VERSION = 17
+        private const val DATABASE_VERSION = 19
 
         @Volatile
         private var INSTANCE: DatabaseHelper? = null
@@ -649,10 +653,59 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             put(COLUMN_BUDGET_USER_ID, userId)
         }
 
-        if (existingBudget != null) {
+        val budgetId: Long = if (existingBudget != null) {
             db.update(TABLE_BUDGET, values, "$COLUMN_BUDGET_ID=?", arrayOf(existingBudget.id.toString()))
+            existingBudget.id.toLong()
         } else {
             db.insert(TABLE_BUDGET, null, values)
+        }
+
+        // Update the expenses with the new budget ID
+        updateExpensesWithBudgetId(categoryId, month, year, userId, budgetId)
+    }
+
+    private fun updateExpensesWithBudgetId(categoryId: Int, month: Int, year: Int, userId: Int, budgetId: Long) {
+        val db = writableDatabase
+        val contentValues = ContentValues().apply {
+            put(COLUMN_EXPENSE_BUDGET_ID, budgetId)
+        }
+
+        val cursor = db.rawQuery(
+            "SELECT $COLUMN_EXPENSE_ID, $COLUMN_DATE FROM $TABLE_EXPENSE WHERE $COLUMN_CATEGORY_ID = ? AND $COLUMN_EXPENSE_USER_ID = ?",
+            arrayOf(categoryId.toString(), userId.toString())
+        )
+
+        db.beginTransaction()
+        try {
+            while (cursor.moveToNext()) {
+                val expenseId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_EXPENSE_ID))
+                val dateStr = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE))
+                val date = parseDate(dateStr)
+                if (date != null && date.get(Calendar.MONTH) + 1 == month && date.get(Calendar.YEAR) == year) {
+                    Log.d("UpdateExpense", "Updating expense with ID: $expenseId for date: $dateStr with budget ID: $budgetId")
+                    db.update(TABLE_EXPENSE, contentValues, "$COLUMN_EXPENSE_ID = ?", arrayOf(expenseId.toString()))
+                } else {
+                    Log.d("UpdateExpense", "Skipping expense with ID: $expenseId for date: $dateStr (Month: ${date?.get(Calendar.MONTH)
+                        ?.plus(1)}, Year: ${date?.get(Calendar.YEAR)})")
+                }
+            }
+            db.setTransactionSuccessful()
+        } finally {
+            cursor.close()
+            db.endTransaction()
+        }
+    }
+
+    private fun parseDate(dateStr: String): Calendar? {
+        return try {
+            val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+            val date = sdf.parse(dateStr)
+            Calendar.getInstance().apply {
+                time = date
+            }
+        } catch (e: ParseException) {
+            e.printStackTrace()
+            null
         }
     }
 
@@ -763,6 +816,95 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         cursor.close()
         return expenses
     }
+
+    fun setAutoRepeatBudget(userId: Int, month: Int, year: Int, isAutoRepeat: Boolean) {
+        val db = writableDatabase
+        val contentValues = ContentValues().apply {
+            put(COLUMN_IS_ACTIVE, if (isAutoRepeat) 1 else 0)
+        }
+        db.update(
+            TABLE_BUDGET,
+            contentValues,
+            "$COLUMN_BUDGET_USER_ID = ? AND $COLUMN_MONTH = ? AND $COLUMN_YEAR = ?",
+            arrayOf(userId.toString(), month.toString(), year.toString())
+        )
+    }
+
+    fun getAutoRepeatBudgets(userId: Int, month: Int, year: Int): List<Budget> {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_BUDGET,
+            null,
+            "$COLUMN_BUDGET_USER_ID = ? AND $COLUMN_MONTH = ? AND $COLUMN_YEAR = ? AND $COLUMN_IS_ACTIVE = 1",
+            arrayOf(userId.toString(), month.toString(), year.toString()),
+            null,
+            null,
+            null
+        )
+
+        val budgets = mutableListOf<Budget>()
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BUDGET_ID))
+                val categoryId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BUDGET_CATEGORY_ID))
+                val amount = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_BUDGET_AMOUNT))
+                val category = getCategoryById(categoryId)
+                budgets.add(Budget(id, category, amount, month, year, true, userId))
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return budgets
+    }
+
+    // Delete budgets for a specific month and year
+    fun deleteBudgetsForMonth(userId: Int, month: Int, year: Int) {
+        val db = writableDatabase
+        db.delete(
+            TABLE_BUDGET,
+            "$COLUMN_BUDGET_USER_ID = ? AND $COLUMN_MONTH = ? AND $COLUMN_YEAR = ?",
+            arrayOf(userId.toString(), month.toString(), year.toString())
+        )
+    }
+
+    fun getBudgetIdForCategory(categoryId: Int, month: Int, year: Int, userId: Int): Int? {
+        val db = readableDatabase
+        val selectQuery = "SELECT $COLUMN_BUDGET_ID FROM $TABLE_BUDGET WHERE $COLUMN_BUDGET_CATEGORY_ID = ? AND $COLUMN_MONTH = ? AND $COLUMN_YEAR = ? AND $COLUMN_BUDGET_USER_ID = ?"
+        val cursor = db.rawQuery(selectQuery, arrayOf(categoryId.toString(), month.toString(), year.toString(), userId.toString()))
+
+        return if (cursor.moveToFirst()) {
+            val budgetId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BUDGET_ID))
+            cursor.close()
+            budgetId
+        } else {
+            cursor.close()
+            null
+        }
+    }
+
+
+    fun getAllBudgets(userId: Int): List<Budget> {
+        val budgets = mutableListOf<Budget>()
+        val db = readableDatabase
+        val cursor = db.query(TABLE_BUDGET, null, "$COLUMN_BUDGET_USER_ID = ?", arrayOf(userId.toString()), null, null, null)
+        if (cursor.moveToFirst()) {
+            do {
+                val budget = Budget(
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BUDGET_ID)),
+                    category = getCategoryById(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BUDGET_CATEGORY_ID)))!!,
+                    amount = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_BUDGET_AMOUNT)),
+                    month = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MONTH)),
+                    year = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_YEAR)),
+                    userId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_BUDGET_USER_ID)),
+                    isActive = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_ACTIVE)) == 1
+                )
+                budgets.add(budget)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return budgets
+    }
+
+
 }
 
 

@@ -24,8 +24,9 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = White,      // Text on background should be white
     surface = MediumGray,      // Medium gray surface
     onSurface = White,         // Ensure text on surface is white
-    error = SoftRed,
-    onError = DarkGray         // Text on error should be dark for contrast with light red
+    error = mediumRed,
+    onError = DarkGray // Text on error should be dark for contrast with light red
+
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -37,7 +38,7 @@ private val LightColorScheme = lightColorScheme(
     onBackground = DarkGray,
     surface = LightGray,
     onSurface = DarkGray,
-    error = SoftRed,
+    error = mediumRed,
     onError = DarkGray
 )
 

@@ -22,6 +22,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Text
@@ -44,8 +45,8 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AddIncomeScreen(
     navController: NavHostController,
-    userId: Int, // Add this parameter
-    incomeId: Int? = null, // Add this parameter
+    userId: Int,
+    incomeId: Int? = null,
     expenseViewModel: ExpenseViewModel = viewModel(),
     categoryViewModel: CategoryViewModel = viewModel()
 ) {
@@ -79,12 +80,12 @@ fun AddIncomeScreen(
     // Filter categories to only show those with type "Income"
     val incomeCategories = categories.filter { it.type == "Income" }
 
-    // Debug log to verify categories are loaded
-    LaunchedEffect(categories) {
-        Log.d("AddIncomeScreen", "Categories loaded: ${categories.size}")
-    }
-
     val dialogState = remember { mutableStateOf(false) }
+
+    var amountError by remember { mutableStateOf(false) }
+    var descriptionError by remember { mutableStateOf(false) }
+    var categoryError by remember { mutableStateOf(false) }
+    var dateError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -99,6 +100,14 @@ fun AddIncomeScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        if (dateError) {
+            Text(
+                text = "Please enter a valid date in the format dd.MM.yyyy",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
         if (dialogState.value) {
             DatePickerDialog(
                 onDismissRequest = { dialogState.value = false },
@@ -109,6 +118,7 @@ fun AddIncomeScreen(
                         }
                         textState.value = selectedDate?.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")) ?: ""
                         dialogState.value = false
+                        dateError = textState.value.isBlank()
                     }) {
                         Text("OK")
                     }
@@ -127,18 +137,33 @@ fun AddIncomeScreen(
 
         OutlinedTextField(
             value = amount.value,
-            onValueChange = { amount.value = it },
+            onValueChange = {
+                amount.value = it
+                amountError = it.isBlank() || it.toDoubleOrNull() == null
+            },
             label = { Text("Amount") },
+            isError = amountError,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
+        if (amountError) {
+            Text(
+                text = "Please enter a valid amount",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = description.value,
-            onValueChange = { description.value = it },
+            onValueChange = {
+                description.value = it
+                descriptionError = it.isBlank()
+            },
             label = { Text("Description") },
+            isError = descriptionError,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -146,9 +171,19 @@ fun AddIncomeScreen(
 
         CategoryDropdownMenu(
             selectedCategory = selectedCategory,
-            onCategorySelected = { selectedCategory = it },
-            categories = incomeCategories,
+            onCategorySelected = {
+                selectedCategory = it
+                categoryError = false
+            },
+            categories = incomeCategories
         )
+        if (categoryError) {
+            Text(
+                text = "Please select a category",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -156,21 +191,29 @@ fun AddIncomeScreen(
 
         Button(
             onClick = {
-                val newIncome = Income(
-                    id = income?.id ?: 0, // Use existing ID if editing, otherwise auto-generate
-                    date = textState.value,
-                    amount = amount.value.toDouble(),
-                    category = selectedCategory,
-                    description = description.value,
-                    userId = userId // Ensure userId is passed when saving the income
-                )
-                if (income != null) {
-                    expenseViewModel.updateIncome(newIncome, userId)
+                amountError = amount.value.isBlank() || amount.value.toDoubleOrNull() == null
+                categoryError = selectedCategory == null
+                dateError = textState.value.isBlank()
+
+                if (!amountError  && !categoryError && !dateError) {
+                    val newIncome = Income(
+                        id = income?.id ?: 0, // Use existing ID if editing, otherwise auto-generate
+                        date = textState.value,
+                        amount = amount.value.toDouble(),
+                        category = selectedCategory,
+                        description = description.value,
+                        userId = userId // Ensure userId is passed when saving the income
+                    )
+                    if (income != null) {
+                        expenseViewModel.updateIncome(newIncome, userId)
+                    } else {
+                        expenseViewModel.saveIncome(newIncome, userId)
+                    }
+                    Toast.makeText(context, "Income saved", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack() // Navigate back after saving
                 } else {
-                    expenseViewModel.saveIncome(newIncome, userId)
+                    Toast.makeText(context, "Please fill all fields correctly", Toast.LENGTH_SHORT).show()
                 }
-                Toast.makeText(context, "Income saved", Toast.LENGTH_SHORT).show()
-                navController.popBackStack() // Navigate back after saving
             },
             modifier = Modifier.fillMaxWidth()
         ) {
