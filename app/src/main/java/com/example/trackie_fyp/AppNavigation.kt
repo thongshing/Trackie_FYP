@@ -1,7 +1,10 @@
 package com.example.trackie_fyp
 
+import MainScreen
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -15,15 +18,18 @@ import com.example.trackie_fyp.iu.BudgetStatusScreen
 import com.example.trackie_fyp.iu.CategoryManagementScreen
 import com.example.trackie_fyp.iu.CategoryTransactionsScreen
 import com.example.trackie_fyp.iu.HomeScreen
+import com.example.trackie_fyp.iu.LoginScreen
 import com.example.trackie_fyp.iu.ReceiptScanningScreen
 import com.example.trackie_fyp.iu.ReportScreen
 import com.example.trackie_fyp.iu.SettingsScreen
 import com.example.trackie_fyp.iu.TotalAmountScreen
+import com.example.trackie_fyp.models.UserViewModel
 import java.util.Calendar
 
 
 @Composable
 fun AppNavigation(navController: NavHostController, dbHelper: DatabaseHelper, userId: Int) {
+    val userViewModel: UserViewModel = viewModel()
     NavHost(
         navController = navController,
         startDestination = "home"
@@ -99,5 +105,25 @@ fun AppNavigation(navController: NavHostController, dbHelper: DatabaseHelper, us
             AddIncomeScreen(navController = navController, incomeId = incomeId, userId = userId)
         }
         composable("report") { ReportScreen(navController, dbHelper = dbHelper, userId = userId) }
+        composable("login") {
+            LoginScreen(navController = navController, onLoginSuccess = { newUserId ->
+                userViewModel.setUserId(newUserId)
+                Log.d("MainActivity", "Login successful, navigating to main with userId: $newUserId")
+                navController.navigate("main/$newUserId") {
+                    popUpTo("login") { inclusive = true }
+                }
+            })
+        }
+        composable(
+            "main/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getInt("userId") ?: -1
+            Log.d("MainActivity", "Navigating to MainScreen with userId: $userId")
+            MainScreen(userId = userId)
+        }
     }
 }
+
+
+

@@ -830,6 +830,25 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         )
     }
 
+    fun isBudgetAutoRepeatEnabled(userId: Int, month: Int, year: Int): Boolean {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_BUDGET,
+            arrayOf(COLUMN_IS_ACTIVE),
+            "$COLUMN_USER_ID = ? AND $COLUMN_MONTH = ? AND $COLUMN_YEAR = ?",
+            arrayOf(userId.toString(), month.toString(), year.toString()),
+            null,
+            null,
+            null
+        )
+        var isAutoRepeatEnabled = false
+        if (cursor.moveToFirst()) {
+            isAutoRepeatEnabled = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_ACTIVE)) > 0
+        }
+        cursor.close()
+        return isAutoRepeatEnabled
+    }
+
     fun getAutoRepeatBudgets(userId: Int, month: Int, year: Int): List<Budget> {
         val db = readableDatabase
         val cursor = db.query(
@@ -855,6 +874,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         cursor.close()
         return budgets
     }
+
+
 
     // Delete budgets for a specific month and year
     fun deleteBudgetsForMonth(userId: Int, month: Int, year: Int) {

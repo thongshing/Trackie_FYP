@@ -30,6 +30,7 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     fun logout() {
         _userId.value = -1
+        sharedPreferences.edit().remove("USER_ID").apply()
         sharedPreferences.edit().clear().apply()
         Log.d("UserViewModel", "logout: Cleared SharedPreferences")
     }

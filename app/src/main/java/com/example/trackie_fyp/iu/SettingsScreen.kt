@@ -95,7 +95,7 @@ fun SettingsScreen(navController: NavController, userId: Int) {
                         viewModel.logout()
                         Log.d("SettingsScreen", "User logged out, navigating to login")
                         navController.navigate("login") {
-                            popUpTo("main/$userId") { inclusive = true }
+                            popUpTo("main/{userId}") { inclusive = true }
                         }
                     }
                 }
@@ -103,6 +103,9 @@ fun SettingsScreen(navController: NavController, userId: Int) {
         }
     }
 }
+
+
+
 
 @Composable
 fun UserProfileSection(userId: Int) {

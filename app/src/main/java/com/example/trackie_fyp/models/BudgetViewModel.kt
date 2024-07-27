@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 
 
+
 class BudgetViewModel(private val dbHelper: DatabaseHelper, private val userId: Int) : ViewModel() {
 
     private val _categories = MutableLiveData<List<Category>>()
@@ -40,18 +41,18 @@ class BudgetViewModel(private val dbHelper: DatabaseHelper, private val userId: 
     private val _budgetExists = MutableLiveData<Boolean>()
     val budgetExists: LiveData<Boolean> get() = _budgetExists
 
+    private val _autoRepeatEnabled = MutableLiveData<Boolean>()
+    val autoRepeatEnabled: LiveData<Boolean> get() = _autoRepeatEnabled
+
     init {
         val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
         _selectedMonth.value = currentMonth
         _selectedYear.value = currentYear
+        loadBudgets()
+        loadExpenses()
     }
 
-    fun loadCategories() {
-        viewModelScope.launch {
-            _categories.postValue(dbHelper.getExpenseCategories(userId))
-        }
-    }
 
     fun loadBudgets() {
         val month = _selectedMonth.value ?: return
@@ -75,19 +76,23 @@ class BudgetViewModel(private val dbHelper: DatabaseHelper, private val userId: 
     }
 
     fun loadExpenses() {
+        val month = _selectedMonth.value ?: return
+        val year = _selectedYear.value ?: return
         viewModelScope.launch {
-            _expenses.postValue(dbHelper.getAllExpenses(userId))
+            _expenses.postValue(dbHelper.getExpensesForMonth(userId, month, year))
         }
     }
 
     fun updateSelectedMonth(month: Int) {
         _selectedMonth.value = month
         loadBudgets()
+        loadExpenses()
     }
 
     fun updateSelectedYear(year: Int) {
         _selectedYear.value = year
         loadBudgets()
+        loadExpenses()
     }
 
     fun loadExpenseCategories() {
@@ -96,20 +101,6 @@ class BudgetViewModel(private val dbHelper: DatabaseHelper, private val userId: 
         }
     }
 
-    fun saveBudgetIncome(amount: Double, month: Int, year: Int) {
-        viewModelScope.launch {
-            val salaryCategoryId = dbHelper.getCategoryIdByName("Salary", userId) ?: return@launch
-            val income = Income(
-                amount = amount,
-                date = "$year-${month.toString().padStart(2, '0')}-01",
-                category = Category(salaryCategoryId, "Salary", "Income", userId),
-                userId = userId
-            )
-            dbHelper.saveIncome(income, userId)
-            dbHelper.saveCategoryBudget(salaryCategoryId, amount, month, year, userId)
-            loadBudgets()
-        }
-    }
 
     fun checkCurrentMonthBudget(month: Int, year: Int) {
         viewModelScope.launch {
@@ -128,20 +119,57 @@ class BudgetViewModel(private val dbHelper: DatabaseHelper, private val userId: 
                 dbHelper.deleteBudget(budget.id)
             }
             loadBudgets()
+            loadExpenses()
         }
     }
 
-    // Set auto-repeat flag for the current month's budgets
-    fun setAutoRepeat(checked: Boolean) {
-        viewModelScope.launch {
-            val month = _selectedMonth.value ?: return@launch
-            val year = _selectedYear.value ?: return@launch
-            dbHelper.setAutoRepeatBudget(userId, month, year, checked)
-            if (!checked) {
-                deleteNextMonthBudgets(month, year)
-            }
-        }
-    }
+//    // Set auto-repeat flag for the current month's budgets
+//    fun setAutoRepeat(checked: Boolean) {
+//        viewModelScope.launch {
+//            val month = _selectedMonth.value ?: return@launch
+//            val year = _selectedYear.value ?: return@launch
+//            dbHelper.setAutoRepeatBudget(userId, month, year, checked)
+//            if (!checked) {
+//                deleteNextMonthBudgets(month, year)
+//            }
+//        }
+//    }
+//
+//    // Generate next month's budgets based on the current month's budgets with the auto-repeat flag
+//    fun generateNextMonthBudget() {
+//        viewModelScope.launch {
+//            val currentMonth = _selectedMonth.value ?: return@launch
+//            val currentYear = _selectedYear.value ?: return@launch
+//
+//            val nextMonth = (currentMonth % 12) + 1
+//            val nextYear = if (nextMonth == 1) currentYear + 1 else currentYear
+//
+//            val budgetsToRepeat = dbHelper.getAutoRepeatBudgets(userId, currentMonth, currentYear)
+//            budgetsToRepeat.forEach { budget ->
+//                budget.category?.let {
+//                    dbHelper.saveCategoryBudget(
+//                        categoryId = it.id,
+//                        amount = budget.amount,
+//                        month = nextMonth,
+//                        year = nextYear,
+//                        userId = userId
+//                    )
+//                }
+//            }
+//            loadBudgets()
+//            loadExpenses()
+//        }
+//    }
+//
+//    // Delete next month's budgets if the auto-repeat flag is unchecked
+//    private fun deleteNextMonthBudgets(month: Int, year: Int) {
+//        viewModelScope.launch {
+//            val nextMonth = (month % 12) + 1
+//            val nextYear = if (nextMonth == 1) year + 1 else year
+//            dbHelper.deleteBudgetsForMonth(userId, nextMonth, nextYear)
+//        }
+//    }
+
 
     // Generate next month's budgets based on the current month's budgets with the auto-repeat flag
     fun generateNextMonthBudget() {
@@ -164,6 +192,8 @@ class BudgetViewModel(private val dbHelper: DatabaseHelper, private val userId: 
                     )
                 }
             }
+            loadBudgets()
+            loadExpenses()
         }
     }
 
@@ -177,4 +207,21 @@ class BudgetViewModel(private val dbHelper: DatabaseHelper, private val userId: 
     }
 
 
+    fun loadAutoRepeatState(month: Int, year: Int) {
+        viewModelScope.launch {
+            _autoRepeatEnabled.postValue(dbHelper.isBudgetAutoRepeatEnabled(userId, month, year))
+        }
+    }
+
+    fun updateAutoRepeatState(checked: Boolean) {
+        val month = _selectedMonth.value ?: return
+        val year = _selectedYear.value ?: return
+        viewModelScope.launch {
+            dbHelper.setAutoRepeatBudget(userId, month, year, checked)
+            _autoRepeatEnabled.value = checked
+            if (!checked) {
+                deleteNextMonthBudgets(month, year)
+            }
+        }
+    }
 }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Check
@@ -23,35 +24,61 @@ import androidx.navigation.compose.rememberNavController
 import com.example.trackie_fyp.DataClass.Category
 import com.example.trackie_fyp.models.CategoryViewModel
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.navigation.NavController
+
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryManagementScreen(
     navController: NavController,
-    userId: Int, // Add userId parameter
+    userId: Int,
     viewModel: CategoryViewModel = viewModel()
 ) {
     var categoryName by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf("Expense") }
     val categories by viewModel.categories.observeAsState(emptyList())
     var expanded by remember { mutableStateOf(false) }
+    var nameError by remember { mutableStateOf(false) }
 
-    // Load categories for the user when the composable is first launched
     LaunchedEffect(Unit) {
         viewModel.loadCategories(userId)
     }
 
     Scaffold(
-        content = {
-            Column(modifier = Modifier.padding(16.dp)) {
+        topBar = {
+            TopAppBar(
+                title = { Text("Category Management") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigate("settings") }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back to Settings")
+                    }
+                }
+            )
+        },
+        content = { paddingValues ->
+            Column(modifier = Modifier
+                .padding(paddingValues)
+                .padding(16.dp)
+            ) {
                 OutlinedTextField(
                     value = categoryName,
-                    onValueChange = { categoryName = it },
+                    onValueChange = {
+                        categoryName = it
+                        nameError = categoryName.isBlank()
+                    },
                     label = { Text("Category Name") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = nameError
                 )
+                if (nameError) {
+                    Text(
+                        text = "Category name cannot be empty",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Box(modifier = Modifier.fillMaxWidth()) {
@@ -93,10 +120,11 @@ fun CategoryManagementScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = {
-                        if (categoryName.isNotBlank()) {
+                        nameError = categoryName.isBlank()
+                        if (!nameError) {
                             viewModel.addCategory(categoryName, selectedType, userId)
                             categoryName = ""
-                            selectedType = "Expense" // Reset type to default
+                            selectedType = "Expense"
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -130,6 +158,7 @@ fun CategoryItem(category: Category, onEdit: (String, String) -> Unit, onDelete:
     var editedName by remember { mutableStateOf(category.name) }
     var editedType by remember { mutableStateOf(category.type) }
     var expanded by remember { mutableStateOf(false) }
+    var nameError by remember { mutableStateOf(false) }
 
     if (isEditing) {
         Row(
@@ -141,9 +170,20 @@ fun CategoryItem(category: Category, onEdit: (String, String) -> Unit, onDelete:
             Column(modifier = Modifier.weight(1f)) {
                 OutlinedTextField(
                     value = editedName,
-                    onValueChange = { editedName = it },
-                    modifier = Modifier.fillMaxWidth()
+                    onValueChange = {
+                        editedName = it
+                        nameError = editedName.isBlank()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    isError = nameError
                 )
+                if (nameError) {
+                    Text(
+                        text = "Category name cannot be empty",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
@@ -182,14 +222,19 @@ fun CategoryItem(category: Category, onEdit: (String, String) -> Unit, onDelete:
                 }
             }
             Spacer(modifier = Modifier.width(8.dp))
-            IconButton(onClick = {
-                onEdit(editedName, editedType)
-                isEditing = false
-            }) {
-                Icon(Icons.Default.Check, contentDescription = "Save")
-            }
-            IconButton(onClick = { isEditing = false }) {
-                Icon(Icons.Default.Close, contentDescription = "Cancel")
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                IconButton(onClick = {
+                    nameError = editedName.isBlank()
+                    if (!nameError) {
+                        onEdit(editedName, editedType)
+                        isEditing = false
+                    }
+                }) {
+                    Icon(Icons.Default.Check, contentDescription = "Save")
+                }
+                IconButton(onClick = { isEditing = false }) {
+                    Icon(Icons.Default.Close, contentDescription = "Cancel")
+                }
             }
         }
     } else {
@@ -199,7 +244,7 @@ fun CategoryItem(category: Category, onEdit: (String, String) -> Unit, onDelete:
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(category.name, style = MaterialTheme.typography.bodyLarge)
                 Text(category.type, style = MaterialTheme.typography.bodySmall)
             }

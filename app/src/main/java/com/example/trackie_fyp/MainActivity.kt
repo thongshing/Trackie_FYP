@@ -13,10 +13,13 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -80,7 +83,7 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         startDestination = "splash" // Temporary start destination
                     ) {
-                        composable("splash") { /* Show splash screen or loading screen */ }
+                        composable("splash") { }
                         composable("login") {
                             LoginScreen(navController = navController, onLoginSuccess = { newUserId ->
                                 userViewModel.setUserId(newUserId)
@@ -104,6 +107,10 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+
+
+
 
     private fun scheduleBudgetCheckWorker(userId: Int) {
         val workManager = WorkManager.getInstance(this)
@@ -136,3 +143,5 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+

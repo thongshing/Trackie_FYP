@@ -16,8 +16,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
@@ -60,7 +62,9 @@ import com.example.trackie_fyp.models.BudgetViewModel
 import com.example.trackie_fyp.models.BudgetViewModelFactory
 import com.example.trackie_fyp.ui.theme.AppThemeSwitcher
 import java.text.DateFormatSymbols
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 
 
@@ -75,16 +79,19 @@ fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelpe
     val expenses by budgetViewModel.expenses.observeAsState(emptyList())
     val selectedMonth by budgetViewModel.selectedMonth.observeAsState(Calendar.getInstance().get(Calendar.MONTH) + 1)
     val selectedYear by budgetViewModel.selectedYear.observeAsState(Calendar.getInstance().get(Calendar.YEAR))
-    var autoRepeat by remember { mutableStateOf(false) }
+    val autoRepeatActive by budgetViewModel.autoRepeatEnabled.observeAsState(false)
     var showDatePickerDialog by remember { mutableStateOf(false) }
     val contentColor = if (isDarkMode) Color.LightGray else Color(0xFFB2AFA5)
     val cardBackgroundColor = if (isDarkMode) Color.DarkGray else Color.White
     val textColor = if (isDarkMode) Color.White else Color.Black
 
+    val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+
     LaunchedEffect(selectedMonth, selectedYear) {
         budgetViewModel.loadBudgets()
         budgetViewModel.loadExpenses()
         budgetViewModel.loadExpenseCategories()
+        budgetViewModel.loadAutoRepeatState(selectedMonth, selectedYear)  // Load auto-repeat state
     }
 
     Scaffold(
@@ -126,7 +133,13 @@ fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelpe
                         contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
                         items(budgets.filter { it.category?.type == "Expense" }) { budget ->
-                            val spent = expenses.filter { it.category?.id == budget.category?.id }.sumOf { it.amount }
+                            val spent = expenses.filter {
+                                val expenseDate = dateFormat.parse(it.date)
+                                val calendar = Calendar.getInstance().apply { time = expenseDate }
+                                it.category?.id == budget.category?.id &&
+                                        calendar.get(Calendar.MONTH) + 1 == selectedMonth &&
+                                        calendar.get(Calendar.YEAR) == selectedYear
+                            }.sumOf { it.amount }
                             val remaining = budget.amount - spent
                             val progress = if (budget.amount > 0) spent / budget.amount else 0.0
 
@@ -143,34 +156,45 @@ fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelpe
                                 elevation = CardDefaults.cardElevation(4.dp),
                                 shape = RoundedCornerShape(8.dp)
                             ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp)
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text(
-                                        text = "${budget.category?.name}: RM ${String.format("%.2f", budget.amount)}",
-                                        style = MaterialTheme.typography.bodyLarge.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            color = textColor
+                                    Column(
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text(
+                                            text = "${budget.category?.name}: RM ${String.format("%.2f", budget.amount)}",
+                                            style = MaterialTheme.typography.bodyLarge.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = textColor
+                                            )
                                         )
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "Spent: RM ${String.format("%.2f", spent)}",
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = textColor)
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "Remaining: RM ${String.format("%.2f", remaining)}",
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = textColor)
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    LinearProgressIndicator(
-                                        progress = progress.toFloat(),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(8.dp)
-                                            .clip(RoundedCornerShape(4.dp)),
-                                        color = if (remaining >= 0) Color.Green else Color.Red
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Spent: RM ${String.format("%.2f", spent)}",
+                                            style = MaterialTheme.typography.bodyMedium.copy(color = textColor)
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = "Remaining: RM ${String.format("%.2f", remaining)}",
+                                            style = MaterialTheme.typography.bodyMedium.copy(color = textColor)
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        LinearProgressIndicator(
+                                            progress = progress.toFloat(),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(8.dp)
+                                                .clip(RoundedCornerShape(4.dp)),
+                                            color = if (remaining >= 0) Color(0xFF93C47D) else Color(0xFFC3352B)
+                                        )
+                                    }
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                        contentDescription = "Go to transactions",
+                                        tint = textColor
                                     )
                                 }
                             }
@@ -183,10 +207,9 @@ fun BudgetStatusScreen(navController: NavHostController, dbHelper: DatabaseHelpe
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Checkbox(
-                        checked = autoRepeat,
+                        checked = autoRepeatActive,
                         onCheckedChange = { checked ->
-                            autoRepeat = checked
-                            budgetViewModel.setAutoRepeat(checked)
+                            budgetViewModel.updateAutoRepeatState(checked)
                             if (checked) {
                                 budgetViewModel.generateNextMonthBudget()
                             }
