@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.trackie_fyp.app-mergeDebugResources-83:/values-de/values-de.xml",
+            "outputFile": "com.example.trackie_fyp.app-mergeDebugResources-81:/values-de/values-de.xml",
             "map": [
                 {
                     "source": "C:\\Users\\A512FL\\.gradle\\caches\\transforms-4\\309d0491e4951becd8a23a3a7c6557ba\\transformed\\play-services-base-18.1.0\\res\\values-de\\values.xml",

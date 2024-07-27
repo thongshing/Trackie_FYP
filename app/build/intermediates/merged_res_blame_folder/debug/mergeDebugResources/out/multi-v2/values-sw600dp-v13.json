@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.trackie_fyp.app-mergeDebugResources-83:/values-sw600dp-v13/values-sw600dp-v13.xml",
+            "outputFile": "com.example.trackie_fyp.app-mergeDebugResources-81:/values-sw600dp-v13/values-sw600dp-v13.xml",
             "map": [
                 {
                     "source": "C:\\Users\\A512FL\\.gradle\\caches\\transforms-4\\90bff0cf27bb3fbb5f14e5f099c7e30f\\transformed\\appcompat-1.7.0\\res\\values-sw600dp-v13\\values-sw600dp-v13.xml",

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.trackie_fyp.app-mergeDebugResources-83:/values-en-rIN/values-en-rIN.xml",
+            "outputFile": "com.example.trackie_fyp.app-mergeDebugResources-81:/values-en-rIN/values-en-rIN.xml",
             "map": [
                 {
                     "source": "C:\\Users\\A512FL\\.gradle\\caches\\transforms-4\\f3d2dd1a55aac8776b534a3ba73c6bc8\\transformed\\ui-release\\res\\values-en-rIN\\values-en-rIN.xml",

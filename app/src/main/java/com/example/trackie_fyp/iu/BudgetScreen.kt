@@ -138,8 +138,8 @@ import java.util.Calendar
 //
 //                Spacer(modifier = Modifier.height(8.dp))
 //
-//                Column {
-//                    categories.forEach { category ->
+//                LazyColumn {
+//                    items(categories) { category ->
 //                        val existingBudget =
 //                            budgetViewModel.budgets.value?.find { it.category?.id == category.id }
 //                        val budgetText = existingBudget?.amount?.toString() ?: ""
@@ -221,6 +221,7 @@ import java.util.Calendar
 //
 //}
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetScreen(navController: NavHostController, dbHelper: DatabaseHelper, month: Int, year: Int, userId: Int) {
@@ -285,88 +286,94 @@ fun BudgetScreen(navController: NavHostController, dbHelper: DatabaseHelper, mon
             )
         },
         content = { paddingValues ->
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
                     .padding(16.dp)
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = income,
-                    onValueChange = { income = it },
-                    label = { Text("Total Monthly Income") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    OutlinedTextField(
+                        value = income,
+                        onValueChange = { income = it },
+                        label = { Text("Total Monthly Income") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LazyColumn {
-                    items(categories) { category ->
-                        val existingBudget =
-                            budgetViewModel.budgets.value?.find { it.category?.id == category.id }
-                        val budgetText = existingBudget?.amount?.toString() ?: ""
-
-                        OutlinedTextField(
-                            value = categoryBudgets[category] ?: budgetText,
-                            onValueChange = { categoryBudgets[category] = it },
-                            label = { Text("${category.name} Budget") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
+                items(categories) { category ->
+                    val existingBudget =
+                        budgetViewModel.budgets.value?.find { it.category?.id == category.id }
+                    val budgetText = existingBudget?.amount?.toString() ?: ""
 
-                val allocatedAmount = categoryBudgets.values.sumOf { it.toDoubleOrNull() ?: 0.0 }
-                val remainingAmount = (income.toDoubleOrNull() ?: 0.0) - allocatedAmount
+                    OutlinedTextField(
+                        value = categoryBudgets[category] ?: budgetText,
+                        onValueChange = { categoryBudgets[category] = it },
+                        label = { Text("${category.name} Budget") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
-                Text(
-                    text = "Remaining: RM ${String.format("%.2f", remainingAmount)}",
-                    color = if (remainingAmount >= 0) Color.Green else Color.Red,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.End)
-                )
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    val allocatedAmount = categoryBudgets.values.sumOf { it.toDoubleOrNull() ?: 0.0 }
+                    val remainingAmount = (income.toDoubleOrNull() ?: 0.0) - allocatedAmount
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Button(
-                        onClick = {
-                            //val incomeAmount = income.toDoubleOrNull() ?: 0.0
-//                            budgetViewModel.saveBudgetIncome(
-//                                incomeAmount,
-//                                selectedMonth,
-//                                selectedYear
-//                            )
-                            budgetViewModel.saveCategoryBudgets(categoryBudgets)
-
-                            navController.navigate("budgetStatus") // Navigate to budget status screen after saving
-                            showToast = true // Trigger the toast
-                        },
-                        modifier = Modifier.weight(1f)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        Text("Save Budget")
+                        Text(
+                            text = "Remaining: RM ${String.format("%.2f", remainingAmount)}",
+                            color = if (remainingAmount >= 0) Color.Green else Color.Red,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                    Button(
-                        onClick = {
-                            budgetViewModel.deleteBudget(selectedMonth, selectedYear)
-                            navController.navigate("budgetStatus") // Navigate to budget status screen after deleting
-                        },
-                        modifier = Modifier.weight(1f)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Delete Budget")
+                        Button(
+                            onClick = {
+//                                val incomeAmount = income.toDoubleOrNull() ?: 0.0
+//                                budgetViewModel.saveCategoryBudgets(
+//                                    incomeAmount,
+//                                    selectedMonth,
+//                                    selectedYear
+//                                )
+                                budgetViewModel.saveCategoryBudgets(categoryBudgets)
+
+                                navController.navigate("budgetStatus") // Navigate to budget status screen after saving
+                                showToast = true // Trigger the toast
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Save Budget")
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Button(
+                            onClick = {
+                                budgetViewModel.deleteBudget(selectedMonth, selectedYear)
+                                navController.navigate("budgetStatus") // Navigate to budget status screen after deleting
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Delete Budget")
+                        }
                     }
                 }
             }
@@ -383,7 +390,6 @@ fun BudgetScreen(navController: NavHostController, dbHelper: DatabaseHelper, mon
             }
         )
     }
-
 }
 
 

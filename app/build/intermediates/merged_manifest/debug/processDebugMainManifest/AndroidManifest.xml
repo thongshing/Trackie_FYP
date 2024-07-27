@@ -293,10 +293,6 @@
                 android:value="androidx.camera.camera2.Camera2Config$DefaultProvider" />
         </service>
         <service
-            android:name="com.onesignal.core.services.SyncService"
-            android:exported="false"
-            android:stopWithTask="true" />
-        <service
             android:name="com.onesignal.core.services.SyncJobService"
             android:exported="false"
             android:permission="android.permission.BIND_JOB_SERVICE" />

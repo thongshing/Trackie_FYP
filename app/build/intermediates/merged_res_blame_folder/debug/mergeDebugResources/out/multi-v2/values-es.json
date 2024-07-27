@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.trackie_fyp.app-mergeDebugResources-83:/values-es/values-es.xml",
+            "outputFile": "com.example.trackie_fyp.app-mergeDebugResources-81:/values-es/values-es.xml",
             "map": [
                 {
                     "source": "C:\\Users\\A512FL\\.gradle\\caches\\transforms-4\\1604aaee4b57a7a6cb4f662e8f99fd8b\\transformed\\material3-release\\res\\values-es\\values-es.xml",
